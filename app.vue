@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-useZkSyncWithdrawalsStore().updateWithdrawalsIfPossible(); // init store to update withdrawals
+useBattleChainWithdrawalsStore().updateWithdrawalsIfPossible(); // init store to update withdrawals
 
 const route = useRoute();
 watch(

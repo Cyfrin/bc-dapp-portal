@@ -3,7 +3,7 @@ import IERC20 from "zksync-ethers/abi/IERC20.json";
 
 import { useSentryLogger } from "../useSentryLogger";
 
-import type { DepositFeeValues } from "../zksync/deposit/useFee";
+import type { DepositFeeValues } from "../battlechain/deposit/useFee";
 import type { Hash, TokenAllowance } from "@/types";
 import type { BigNumberish } from "ethers";
 

@@ -30,7 +30,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "done">("not-started");
   const error = ref<Error | undefined>();
   const transactionHash = ref<string | undefined>();
-  const eraWalletStore = useZkSyncWalletStore();
+  const bcWalletStore = useBattleChainWalletStore();
   const { captureException } = useSentryLogger();
   const { selectedNetwork } = storeToRefs(useNetworkStore());
 
@@ -83,7 +83,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
 
       status.value = "processing";
       const signer = await getSigner();
-      if (!signer) throw new Error("ZKsync Signer is not available");
+      if (!signer) throw new Error("Battle Chain Signer is not available");
 
       accountAddress = await signer.getAddress();
 
@@ -97,7 +97,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
       };
       const bridgeAddress = transaction.type === "withdrawal" ? await getRequiredBridgeAddress() : undefined;
 
-      await eraWalletStore.walletAddressValidate();
+      await bcWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
 
       status.value = "waiting-for-signature";
@@ -192,7 +192,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [transaction, fee],
-        filePath: "composables/zksync/useTransaction.ts",
+        filePath: "composables/battlechain/useTransaction.ts",
       });
     }
   };

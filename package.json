@@ -1,6 +1,7 @@
 {
-  "name": "zksync-dapp-portal",
-  "description": "ZKsync Portal provides Wallet and Bridge functionality for interacting with ZKsync",
+  "name": "battle-chain-dapp-portal",
+  "description": "Battle Chain Portal provides Wallet and Bridge functionality for interacting with Battle Chain",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "nuxt dev",
@@ -15,9 +16,9 @@
     "generate:node:prividium": "cross-env NODE_TYPE=prividium npm run generate",
     "generate-meta": "ts-node --transpile-only scripts/updateBridgeMetaTags.ts",
     "hyperchain:create": "ts-node --transpile-only scripts/hyperchains/create.ts",
+    "clean": "rm -rf dist node_modules .nuxt .cache *.log",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "prepare": "husky install",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .eslintignore --no-error-on-unmatched-pattern --max-warnings=2",
     "lint:fix": "npm run lint -- --fix"
   },

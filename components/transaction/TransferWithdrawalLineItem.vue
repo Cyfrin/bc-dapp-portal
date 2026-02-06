@@ -40,7 +40,7 @@
       </div>
       <div class="withdrawal-line-separator"></div>
       <div class="withdrawal-line-bottom">
-        <div>Withdrawal is available for claiming on the {{ eraNetwork.l1Network?.name }} network</div>
+        <div>Withdrawal is available for claiming on the {{ bcNetwork.l1Network?.name }} network</div>
         <CommonButton variant="primary" class="withdrawal-claim-button">Go to claim</CommonButton>
       </div>
     </div>
@@ -66,7 +66,7 @@ const props = defineProps({
 });
 
 const { account } = storeToRefs(useOnboardStore());
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 
 const label = computed(() => {
   const article = props.inProgress ? "Bridging" : "Bridged";
@@ -84,12 +84,12 @@ const formatAddress = (address: string) => {
 };
 const getLayerName = (layer: NetworkLayer) => {
   if (layer === "L1") {
-    return eraNetwork.value.l1Network?.name;
+    return bcNetwork.value.l1Network?.name;
   }
-  return eraNetwork.value.name;
+  return bcNetwork.value.name;
 };
 const chainsLabel = computed(() => {
-  if (!eraNetwork.value.l1Network) {
+  if (!bcNetwork.value.l1Network) {
     return;
   }
   return {

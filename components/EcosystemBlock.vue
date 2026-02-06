@@ -8,26 +8,29 @@
       >
         <XMarkIcon aria-hidden="true" class="h-6 w-6" />
       </button>
-      <p class="text-left xs:text-center">Explore the wonders of ZKsync ecosystem</p>
+      <p class="text-left xs:text-center">Explore the wonders of Battle Chain ecosystem</p>
       <AnimationsEcosystemLogotypes />
-      <CommonButton
+      <!--CommonButton
         variant="primary"
         as="a"
-        href="https://zksync.dappradar.com/ecosystem"
+        href="https://battle-chain.dappradar.com/ecosystem"
         target="_blank"
         class="w-full"
       >
         Explore Ecosystem
         <ArrowTopRightOnSquareIcon aria-hidden="true" class="ml-2 h-6 w-6" />
-      </CommonButton>
+      </CommonButton-->
     </div>
   </CommonContentBlock>
 </template>
 
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon, XMarkIcon } from "@heroicons/vue/24/outline";
+import {
+  // ArrowTopRightOnSquareIcon,
+  XMarkIcon,
+} from "@heroicons/vue/24/outline";
 
-import useEcosystemBanner from "@/composables/zksync/deposit/useEcosystemBanner";
+import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 
 const { ecosystemBannerClosed } = useEcosystemBanner();
 

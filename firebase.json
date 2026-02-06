@@ -39,23 +39,23 @@
       ],
       "redirects": [
         {
-          "source": "https://sepolia.staging-portal.zksync.dev/*",
-          "destination": "https://staging-portal.zksync.dev/?network=sepolia",
+          "source": "https://sepolia.staging-portal.battlechain.com/*",
+          "destination": "https://staging-portal.battlechain.com/?network=sepolia",
           "type": 301
         },
         {
-          "source": "https://sepolia.portal.zksync.io/*",
-          "destination": "https://portal.zksync.io/?network=sepolia",
+          "source": "https://sepolia.portal.battlechain.com/*",
+          "destination": "https://portal.battlechain.com/?network=sepolia",
           "type": 301
         },
         {
-          "source": "https://goerli.staging-portal.zksync.dev/*",
-          "destination": "https://staging-portal.zksync.dev/?network=sepolia",
+          "source": "https://goerli.staging-portal.battlechain.com/*",
+          "destination": "https://staging-portal.battlechain.com/?network=sepolia",
           "type": 301
         },
         {
-          "source": "https://goerli.portal.zksync.io/*",
-          "destination": "https://portal.zksync.io/?network=sepolia",
+          "source": "https://goerli.portal.battlechain.com/*",
+          "destination": "https://portal.battlechain.com/?network=sepolia",
           "type": 301
         }
       ]

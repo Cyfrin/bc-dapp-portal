@@ -1,11 +1,11 @@
 <template>
   <CommonModal title="Help">
     <div class="-mx-block-padding-1/2">
-      <DestinationItem
+      <!--DestinationItem
         label="Discord"
         description="Get support, follow announcements and connect with community"
         as="a"
-        href="https://join.zksync.dev/"
+        href="https://join.battlechain.com/"
         target="_blank"
         :icon="ArrowTopRightOnSquareIcon"
         variant="light"
@@ -15,8 +15,8 @@
             <IconsDiscord class="h-6 w-6" />
           </div>
         </template>
-      </DestinationItem>
-      <DestinationItem
+      </DestinationItem-->
+      <!--DestinationItem
         label="FAQ"
         description="Find tutorials and answers to the most common questions"
         as="a"
@@ -33,9 +33,9 @@
       </DestinationItem>
       <DestinationItem
         label="Official Documentation"
-        description="Developer resources and technical ZKsync documentation"
+        description="Developer resources and technical Battle Chain documentation"
         as="a"
-        href="https://era.zksync.io"
+        href="https://docs.battlechain.com"
         target="_blank"
         :icon="ArrowTopRightOnSquareIcon"
         variant="light"
@@ -45,11 +45,11 @@
             <BookOpenIcon aria-hidden="true" />
           </DestinationIconContainer>
         </template>
-      </DestinationItem>
+      </DestinationItem-->
     </div>
   </CommonModal>
 </template>
 
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon, BookOpenIcon, QuestionMarkCircleIcon } from "@heroicons/vue/24/outline";
+// import { ArrowTopRightOnSquareIcon, BookOpenIcon, QuestionMarkCircleIcon } from "@heroicons/vue/24/outline";
 </script>

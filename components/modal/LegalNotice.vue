@@ -1,6 +1,6 @@
 <template>
   <CommonModal v-model:opened="modalDisplayed" :initial-focus="checkbox" :closable="false">
-    <DialogTitle as="div" class="modal-title">ZKsync Bridge is live on beta</DialogTitle>
+    <DialogTitle as="div" class="modal-title">Battle Chain Bridge is live on beta</DialogTitle>
     <p class="modal-text">
       Nothing on this website should be construed as an invitation, inducement, or solicitation to engage in investment
       activity. You understand that the bridge, asset, and transaction features available through this website are in
@@ -9,8 +9,9 @@
     </p>
 
     <CommonCheckboxWithText ref="checkbox" v-model="warningChecked" class="mt-3">
-      I agree to the <a href="https://zksync.io/terms" target="_blank" class="checkbox-link">Terms of Service</a> and
-      <a href="https://zksync.io/privacy" target="_blank" class="checkbox-link">Privacy Policy</a>
+      I agree to the
+      <a href="https://battlechain.com/terms" target="_blank" class="checkbox-link">Terms of Service</a> and
+      <a href="https://battlechain.com/privacy" target="_blank" class="checkbox-link">Privacy Policy</a>
     </CommonCheckboxWithText>
     <CommonButton class="mt-8 w-full" variant="primary" :disabled="!warningChecked" @click="proceed()">
       Proceed
@@ -25,7 +26,7 @@ import { useStorage } from "@vueuse/core";
 import { isCustomNode } from "@/data/networks";
 
 const checkbox = ref<HTMLInputElement | undefined>();
-const legalNoticeAccepted = useStorage("zksync-bridge-legal-notice-accepted", false);
+const legalNoticeAccepted = useStorage("battle-chain-bridge-legal-notice-accepted", false);
 const warningChecked = ref(legalNoticeAccepted.value);
 const modalDisplayed = ref(!legalNoticeAccepted.value && !isCustomNode);
 

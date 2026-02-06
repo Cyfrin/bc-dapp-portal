@@ -7,12 +7,12 @@ import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/hel
 
 import type { Hash, TokenAmount } from "@/types";
 
-export const useZkSyncEthereumBalanceStore = defineStore("zkSyncEthereumBalances", () => {
+export const useBattleChainEthereumBalanceStore = defineStore("battleChainEthereumBalances", () => {
   const portalRuntimeConfig = usePortalRuntimeConfig();
 
   const onboardStore = useOnboardStore();
   const ethereumBalancesStore = useEthereumBalanceStore();
-  const tokensStore = useZkSyncTokensStore();
+  const tokensStore = useBattleChainTokensStore();
   const { l1Network, selectedNetwork } = storeToRefs(useNetworkStore());
   const { account } = storeToRefs(onboardStore);
   const { balance: ethereumBalance } = storeToRefs(ethereumBalancesStore);

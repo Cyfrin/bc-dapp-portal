@@ -5,9 +5,9 @@ import { customBridgeTokens } from "@/data/customBridgeTokens";
 
 import type { Api, Token } from "@/types";
 
-export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
-  const providerStore = useZkSyncProviderStore();
-  const { eraNetwork } = storeToRefs(providerStore);
+export const useBattleChainTokensStore = defineStore("battleChainTokens", () => {
+  const providerStore = useBattleChainProviderStore();
+  const { bcNetwork } = storeToRefs(providerStore);
 
   const {
     result: tokensRaw,
@@ -24,19 +24,19 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     let explorerTokens: Token[] = [];
     let configTokens: Token[] = [];
 
-    if (eraNetwork.value.blockExplorerApi) {
+    if (bcNetwork.value.blockExplorerApi) {
       const responses: Api.Response.Collection<Api.Response.Token>[] = await Promise.all([
-        $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=1`),
-        $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=2`),
-        $fetch(`${eraNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=3`),
+        $fetch(`${bcNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=1`),
+        $fetch(`${bcNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=2`),
+        $fetch(`${bcNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=3`),
       ]);
       explorerTokens = responses.map((response) => response.items.map(mapApiToken)).flat();
       baseToken = explorerTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
       ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
     }
 
-    if (eraNetwork.value.getTokens && (!baseToken || !ethToken)) {
-      configTokens = await eraNetwork.value.getTokens();
+    if (bcNetwork.value.getTokens && (!baseToken || !ethToken)) {
+      configTokens = await bcNetwork.value.getTokens();
       if (!baseToken) {
         baseToken = configTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
       }
@@ -48,7 +48,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
     if (!baseToken) {
       baseToken = {
         address: L2_BASE_TOKEN_ADDRESS,
-        l1Address: eraNetwork.value.l1Network ? await provider.getBaseTokenContractAddress() : undefined,
+        l1Address: bcNetwork.value.l1Network ? await provider.getBaseTokenContractAddress() : undefined,
         symbol: "BASETOKEN",
         name: "Base Token",
         decimals: 18,
@@ -91,7 +91,7 @@ export const useZkSyncTokensStore = defineStore("zkSyncTokens", () => {
         .filter((e) => e.l1Address)
         .map((token) => {
           const customBridgeToken = customBridgeTokens.find(
-            (e) => eraNetwork.value.l1Network?.id === e.chainId && token.l1Address === e.l1Address
+            (e) => bcNetwork.value.l1Network?.id === e.chainId && token.l1Address === e.l1Address
           );
           const name = customBridgeToken?.name || token.name;
           const symbol = customBridgeToken?.symbol || token.symbol;

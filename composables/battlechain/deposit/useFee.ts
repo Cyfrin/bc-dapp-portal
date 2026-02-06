@@ -17,8 +17,8 @@ export type DepositFeeValues = {
 
 export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) => {
   const { getPublicClient } = useOnboardStore();
-  const { getL1VoidSigner } = useZkSyncWalletStore();
-  const { requestProvider } = useZkSyncProviderStore();
+  const { getL1VoidSigner } = useBattleChainWalletStore();
+  const { requestProvider } = useBattleChainProviderStore();
   const { captureException } = useSentryLogger();
 
   let params = {
@@ -109,7 +109,7 @@ export default (tokens: Ref<Token[]>, balances: Ref<TokenAmount[] | undefined>) 
           error: err as Error,
           parentFunctionName: "executeEstimateFee",
           parentFunctionParams: [],
-          filePath: "composables/zksync/deposit/useFee.ts",
+          filePath: "composables/battlechain/deposit/useFee.ts",
         });
         throw err;
       }

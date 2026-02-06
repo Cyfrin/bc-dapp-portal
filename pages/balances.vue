@@ -3,7 +3,7 @@
     <PageTitle :fallback-route="{ name: 'assets' }">Balances</PageTitle>
 
     <template v-if="!isConnected">
-      <ConnectWalletBlock>Connect wallet to view your assets on {{ eraNetwork.name }}</ConnectWalletBlock>
+      <ConnectWalletBlock>Connect wallet to view your assets on {{ bcNetwork.name }}</ConnectWalletBlock>
     </template>
     <template v-else>
       <CommonCardWithLineButtons v-if="loading">
@@ -33,9 +33,7 @@
               v-for="item in group.balances"
               :key="item.address"
               as="div"
-              :send-route-name="
-                item.amount === '0' ? 'receive-methods' : eraNetwork.l1Network ? 'send-methods' : 'send'
-              "
+              :send-route-name="item.amount === '0' ? 'receive-methods' : bcNetwork.l1Network ? 'send-methods' : 'send'"
               v-bind="item"
             />
           </CommonCardWithLineButtons>
@@ -46,13 +44,15 @@
 </template>
 
 <script lang="ts" setup>
+import { MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
+
 import type { TokenAmount } from "@/types";
 
 const onboardStore = useOnboardStore();
-const walletEraStore = useZkSyncWalletStore();
+const walletBCStore = useBattleChainWalletStore();
 const { isConnected } = storeToRefs(onboardStore);
-const { balance, balanceInProgress, balanceError } = storeToRefs(walletEraStore);
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { balance, balanceInProgress, balanceError } = storeToRefs(walletBCStore);
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 
 const { loading, reset: resetSingleLoading } = useSingleLoading(computed(() => balanceInProgress.value));
 
@@ -86,7 +86,7 @@ const filterBalanceGroups = (
 const filteredBalances = computed(() => filterBalanceGroups(balanceGroups));
 
 const fetch = () => {
-  walletEraStore.requestBalance();
+  walletBCStore.requestBalance();
 };
 fetch();
 

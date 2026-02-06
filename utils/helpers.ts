@@ -2,7 +2,7 @@ import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 
-import type { ZkSyncNetwork } from "@/data/networks";
+import type { BattleChainNetwork } from "@/data/networks";
 import type { Token, TokenAmount } from "@/types";
 
 export function isOnlyZeroes(value: string) {
@@ -13,7 +13,7 @@ export function calculateFee(gasLimit: bigint, gasPrice: bigint) {
   return gasLimit * gasPrice;
 }
 
-export const getNetworkUrl = (network: ZkSyncNetwork, routePath: string) => {
+export const getNetworkUrl = (network: BattleChainNetwork, routePath: string) => {
   const url = new URL(routePath, window.location.origin);
   url.searchParams.set("network", network.key);
   return url.toString();

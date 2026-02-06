@@ -1,10 +1,10 @@
 <template>
   <div>
-    <NetworkDeprecationAlert />
+    <!--NetworkDeprecationAlert /-->
     <PageTitle>Transfers</PageTitle>
 
     <template v-if="!isConnected">
-      <ConnectWalletBlock>Connect wallet to view your latest transfers on {{ eraNetwork.name }}</ConnectWalletBlock>
+      <ConnectWalletBlock>Connect wallet to view your latest transfers on {{ bcNetwork.name }}</ConnectWalletBlock>
     </template>
     <template v-else>
       <template v-if="!loading && recentBridgeOperations.length">
@@ -18,7 +18,7 @@
               :to="{
                 name: 'transaction-hash',
                 params: { hash: item.identifierTransactionHash },
-                query: { network: eraNetwork.key },
+                query: { network: bcNetwork.key },
               }"
             />
           </CommonCardWithLineButtons>
@@ -37,7 +37,7 @@
             :to="{
               name: 'transaction-hash',
               params: { hash: item.identifierTransactionHash },
-              query: { network: eraNetwork.key },
+              query: { network: bcNetwork.key },
             }"
           />
         </CommonCardWithLineButtons>
@@ -87,8 +87,8 @@
 import { useIntersectionObserver } from "@vueuse/core";
 
 const onboardStore = useOnboardStore();
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
-const transfersHistoryStore = useZkSyncTransfersHistoryStore();
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
+const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { isConnected } = storeToRefs(onboardStore);
 const {
   transfers,
@@ -99,7 +99,7 @@ const {
   previousTransfersRequestError,
 } = storeToRefs(transfersHistoryStore);
 const { destinations } = storeToRefs(useDestinationsStore());
-const { userTransactions } = storeToRefs(useZkSyncTransactionStatusStore());
+const { userTransactions } = storeToRefs(useBattleChainTransactionStatusStore());
 
 type RecentBridgeOperation = Transfer & {
   identifierTransactionHash: string;

@@ -3,7 +3,7 @@
     <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
       <p>
         Please ensure funds to be sent from an account on
-        <span class="font-medium">{{ eraNetwork.name }}</span
+        <span class="font-medium">{{ bcNetwork.name }}</span
         >, otherwise it may result in the permanent loss of funds.
       </p>
     </CommonAlert>
@@ -15,7 +15,7 @@
         <div class="flex flex-col items-center text-center sm:items-start sm:text-left">
           <div class="flex items-center gap-1 text-neutral-400">
             <IconsEra class="h-6 w-6" />
-            <span>Your {{ eraNetwork.name }} address</span>
+            <span>Your {{ bcNetwork.name }} address</span>
           </div>
           <div class="break-all sm:text-lg">{{ address }}</div>
           <CommonButton variant="primary" class="mt-block-padding-1/2 w-full" @click="copy()">
@@ -46,5 +46,5 @@ const props = defineProps({
 });
 
 const { copy, copied } = useCopy(computed(() => props.address));
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 </script>

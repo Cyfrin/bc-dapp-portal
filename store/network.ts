@@ -2,7 +2,7 @@ import { useStorage } from "@vueuse/core";
 
 import { chainList, defaultNetwork } from "@/data/networks";
 
-import type { L1Network, ZkSyncNetwork } from "@/data/networks";
+import type { L1Network, BattleChainNetwork } from "@/data/networks";
 
 export const useNetworkStore = defineStore("network", () => {
   const networkUsesLocalStorage = useStorage<boolean>("networkUsesLocalStorage", false);
@@ -11,7 +11,7 @@ export const useNetworkStore = defineStore("network", () => {
     defaultNetwork.key,
     networkUsesLocalStorage.value ? window.localStorage : window.sessionStorage
   );
-  const selectedNetwork = computed<ZkSyncNetwork>(() => {
+  const selectedNetwork = computed<BattleChainNetwork>(() => {
     return chainList.find((e) => e.key === selectedNetworkKey.value) ?? defaultNetwork;
   });
 
@@ -20,7 +20,7 @@ export const useNetworkStore = defineStore("network", () => {
 
   const networkChangedWarningDisabled = useStorage<boolean>("networkChangedWarningDisabled", false);
   const lastSelectedNetworkKey = useStorage<string | undefined>("lastSelectedNetworkKey", undefined);
-  const lastSelectedNetwork = computed<ZkSyncNetwork | undefined>(() => {
+  const lastSelectedNetwork = computed<BattleChainNetwork | undefined>(() => {
     return chainList.find((network) => network.key === lastSelectedNetworkKey.value);
   });
   const networkChangedWarning = computed(

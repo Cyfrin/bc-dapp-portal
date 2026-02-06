@@ -11,15 +11,16 @@
         </template>
         <template v-else-if="isCustomNode">
           Your funds will be available for claiming after the transaction is processed on
-          <span class="font-medium">{{ eraNetwork.name }}</span> and executed on the
-          <span class="font-medium">{{ eraNetwork.l1Network?.name }}</span
+          <span class="font-medium">{{ bcNetwork.name }}</span> and executed on the
+          <span class="font-medium">{{ bcNetwork.l1Network?.name }}</span
           >.
         </template>
         <template v-else>
           Your funds will be available on <span class="font-medium">{{ transaction.to.destination.label }}</span> after
           the
-          <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">~5+ hour delay</a>.
-          During this time, the transaction will be processed
+          <a class="underline underline-offset-2" :href="BATTLE_CHAIN_WITHDRAWAL_DELAY" target="_blank"
+            >~5+ hour delay</a
+          >. During this time, the transaction will be processed
           {{
             withdrawalManualFinalizationRequired
               ? "and become available for claiming."
@@ -47,7 +48,7 @@
         <CommonAlert v-else variant="warning" :icon="ExclamationTriangleIcon" class="mb-4">
           <p>
             You will have to claim your withdrawal once it's processed. Claiming will require paying the fee on the
-            {{ eraNetwork.l1Network?.name }} network.
+            {{ bcNetwork.l1Network?.name }} network.
           </p>
         </CommonAlert>
       </template>
@@ -161,7 +162,7 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
-import useWithdrawalFinalization from "@/composables/zksync/useWithdrawalFinalization";
+import useWithdrawalFinalization from "@/composables/battlechain/useWithdrawalFinalization";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 
@@ -177,8 +178,8 @@ const props = defineProps({
 });
 
 const onboardStore = useOnboardStore();
-const transactionStatusStore = useZkSyncTransactionStatusStore();
-const { eraNetwork, blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
+const transactionStatusStore = useBattleChainTransactionStatusStore();
+const { bcNetwork, blockExplorerUrl } = storeToRefs(useBattleChainProviderStore());
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { connectorName, isCorrectNetworkSet } = storeToRefs(onboardStore);
 
@@ -193,7 +194,7 @@ const isCustomBridgeToken = computed(() => {
   const customBridgeToken = customBridgeTokens.find(
     (token) =>
       token.l2Address.toLowerCase() === props.transaction.token.address.toLowerCase() &&
-      token.chainId === eraNetwork.value.l1Network?.id
+      token.chainId === bcNetwork.value.l1Network?.id
   );
 
   return !!customBridgeToken?.l1BridgeAddress;

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NetworkDeprecationAlert v-if="step === 'form'" />
+    <!--NetworkDeprecationAlert v-if="step === 'form'" /-->
     <slot v-if="step === 'form'" name="title" />
     <PageTitle
       v-else-if="step === 'withdrawal-finalization-warning'"
@@ -109,7 +109,7 @@
         />
         <TransactionNativeBridge
           v-if="nativeTokenBridgingOnly"
-          :era-network="eraNetwork"
+          :bc-network="bcNetwork"
           type="withdraw"
           class="mt-6"
         ></TransactionNativeBridge>
@@ -118,14 +118,14 @@
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
           <p v-if="!isCustomNode">
             After an approximately
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank"
+            <a class="underline underline-offset-2" :href="BATTLE_CHAIN_WITHDRAWAL_DELAY" target="_blank"
               >~5+ hour withdrawal delay</a
             >, return to this portal to claim your funds on Ethereum. Claiming will require paying Ethereum transaction
             fees. You may also choose to use a third-party bridge to withdraw funds, at your own risk.
           </p>
           <p v-else>
-            After transaction is executed on {{ eraNetwork.l1Network?.name }}, you will need to claim your funds which
-            requires paying another transaction fee on {{ eraNetwork.l1Network?.name }}.
+            After transaction is executed on {{ bcNetwork.l1Network?.name }}, you will need to claim your funds which
+            requires paying another transaction fee on {{ bcNetwork.l1Network?.name }}.
           </p>
         </CommonAlert>
         <CommonButton variant="primary" class="mx-auto mt-block-gap w-max" @click="buttonContinue()">
@@ -141,11 +141,11 @@
         >
           <p v-if="withdrawalManualFinalizationRequired">
             You will be able to claim your withdrawal after an approximate 5+ hour withdrawal delay.
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
+            <a class="underline underline-offset-2" :href="BATTLE_CHAIN_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
           </p>
           <p v-else>
             You will receive funds after an approximate 5+ hour withdrawal delay.
-            <a class="underline underline-offset-2" :href="ZKSYNC_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
+            <a class="underline underline-offset-2" :href="BATTLE_CHAIN_WITHDRAWAL_DELAY" target="_blank">Learn more</a>
           </p>
         </CommonAlert>
 
@@ -197,7 +197,7 @@
           <CommonButtonLabel
             v-if="type === 'withdrawal' && !isCustomNode"
             as="a"
-            :href="ZKSYNC_WITHDRAWAL_DELAY"
+            :href="BATTLE_CHAIN_WITHDRAWAL_DELAY"
             target="_blank"
             class="ml-auto text-right"
           >
@@ -229,7 +229,7 @@
             :token-address="selectedTokenAddress!"
             :asset-id="assetId!"
             :enough-allowance="amountToTransferIsApproved"
-            :block-explorer-url="eraNetwork.blockExplorerUrl"
+            :block-explorer-url="bcNetwork.blockExplorerUrl"
             :allowance="approvedAllowance"
             :set-allowance-receipts="approveAllowanceReceipt"
             :set-allowance-transaction-hashes="setAllowanceTransactionHashes"
@@ -317,16 +317,16 @@ import { useRouteQuery } from "@vueuse/router";
 import { isAddress } from "ethers";
 
 import AllowancePanel from "@/components/transaction/AllowancePanel.vue";
+import useFee from "@/composables/battlechain/useFee";
+import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/battlechain/useTransaction";
 import { useNativeAllowance } from "@/composables/transaction/useNativeAllowance";
 import { useSentryLogger } from "@/composables/useSentryLogger";
-import useFee from "@/composables/zksync/useFee";
-import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/zksync/useTransaction";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 import TransferSubmitted from "@/views/transactions/TransferSubmitted.vue";
 import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
 
-import type { FeeEstimationParams } from "@/composables/zksync/useFee";
+import type { FeeEstimationParams } from "@/composables/battlechain/useFee";
 import type { Token, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
 
@@ -341,11 +341,11 @@ const route = useRoute();
 const router = useRouter();
 
 const onboardStore = useOnboardStore();
-const walletStore = useZkSyncWalletStore();
-const tokensStore = useZkSyncTokensStore();
-const providerStore = useZkSyncProviderStore();
+const walletStore = useBattleChainWalletStore();
+const tokensStore = useBattleChainTokensStore();
+const providerStore = useBattleChainProviderStore();
 const { account, isConnected } = storeToRefs(onboardStore);
-const { eraNetwork } = storeToRefs(providerStore);
+const { bcNetwork } = storeToRefs(providerStore);
 const { destinations } = storeToRefs(useDestinationsStore());
 const { tokens, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(walletStore);
@@ -411,7 +411,7 @@ const tokenCustomBridge = computed(() => {
     return undefined;
   }
   const customBridgeToken = customBridgeTokens.find(
-    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.l1Address
+    (e) => bcNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.l1Address
   );
   if (!customBridgeToken?.bridges.some((e) => e.withdrawUrl)) {
     return undefined;
@@ -552,7 +552,7 @@ const withdrawalManualFinalizationRequired = computed(() => {
   if (!transaction.value) return false;
   return (
     props.type === "withdrawal" &&
-    isWithdrawalManualFinalizationRequired(transaction.value.token, eraNetwork.value.l1Network?.id || -1)
+    isWithdrawalManualFinalizationRequired(transaction.value.token, bcNetwork.value.l1Network?.id || -1)
   );
 });
 
@@ -638,10 +638,10 @@ watch(
 
 const nativeTokenBridgingOnly = computed(() => {
   if (
-    eraNetwork.value.nativeTokenBridgingOnly &&
-    eraNetwork.value.nativeCurrency &&
+    bcNetwork.value.nativeTokenBridgingOnly &&
+    bcNetwork.value.nativeCurrency &&
     selectedToken.value &&
-    selectedToken.value.symbol !== eraNetwork.value.nativeCurrency.symbol
+    selectedToken.value.symbol !== bcNetwork.value.nativeCurrency.symbol
   ) {
     return true;
   }
@@ -684,14 +684,14 @@ const buttonContinue = () => {
 };
 
 /* Transaction signing and submitting */
-const transfersHistoryStore = useZkSyncTransfersHistoryStore();
+const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { previousTransactionAddress } = storeToRefs(usePreferencesStore());
 const {
   status: transactionStatus,
   error: transactionError,
   commitTransaction,
 } = useTransaction(walletStore.getSigner, providerStore.requestProvider);
-const { saveTransaction, waitForCompletion } = useZkSyncTransactionStatusStore();
+const { saveTransaction, waitForCompletion } = useBattleChainTransactionStatusStore();
 
 watch(step, (newStep) => {
   if (newStep === "form") {
@@ -746,7 +746,7 @@ const makeTransaction = async () => {
       router.resolve({
         name: "transaction-hash",
         params: { hash: transactionInfo.value.transactionHash },
-        query: { network: eraNetwork.value.key },
+        query: { network: bcNetwork.value.key },
       }).href
     );
     waitForCompletion(transactionInfo.value)

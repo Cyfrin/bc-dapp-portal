@@ -36,7 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VITE_FIREBASE_PROJECT_ID=zksync-dapp-wallet-v2 \
+          VITE_FIREBASE_PROJECT_ID=battle-chain-dapp-wallet-v2 \
             npx semantic-release || true
 
   docker:
@@ -105,6 +105,6 @@ jobs:
         id: deploy
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING_ZKSYNC_DAPP_WALLET_V2 }}"
-          projectId: staging-zksync-dapp-wallet-v2
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING_BATTLE_CHAIN_DAPP_WALLET_V2 }}"
+          projectId: staging-battle-chain-dapp-wallet-v2
           channelID: live

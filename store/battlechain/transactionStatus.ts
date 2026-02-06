@@ -2,7 +2,7 @@ import { useStorage } from "@vueuse/core";
 import { decodeEventLog } from "viem";
 import IZkSyncHyperchain from "zksync-ethers/abi/IZkSyncHyperchain.json";
 
-import type { FeeEstimationParams } from "@/composables/zksync/useFee";
+import type { FeeEstimationParams } from "@/composables/battlechain/useFee";
 import type { TokenAmount, Hash } from "@/types";
 
 export type TransactionInfo = {
@@ -24,22 +24,22 @@ export type TransactionInfo = {
 export const ESTIMATED_DEPOSIT_DELAY = 15 * 60 * 1000; // 15 minutes
 export const WITHDRAWAL_DELAY = 6 * 60 * 60 * 1000; // 6 hours
 
-export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionStatus", () => {
+export const useBattleChainTransactionStatusStore = defineStore("battleChainTransactionStatus", () => {
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
+  const providerStore = useBattleChainProviderStore();
   const { account } = storeToRefs(onboardStore);
-  const { eraNetwork } = storeToRefs(providerStore);
+  const { bcNetwork } = storeToRefs(providerStore);
 
   const storageSavedTransactions = useStorage<{ [networkKey: string]: TransactionInfo[] }>(
-    "zksync-bridge-transactions",
+    "battle-chain-bridge-transactions",
     {}
   );
   const savedTransactions = computed<TransactionInfo[]>({
     get: () => {
-      return storageSavedTransactions.value[eraNetwork.value.key] || [];
+      return storageSavedTransactions.value[bcNetwork.value.key] || [];
     },
     set: (transactions: TransactionInfo[]) => {
-      storageSavedTransactions.value[eraNetwork.value.key] = transactions;
+      storageSavedTransactions.value[bcNetwork.value.key] = transactions;
     },
   });
   const userTransactions = computed(() =>
@@ -128,7 +128,7 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
         return transaction;
       }
     }
-    const isFinalized = await useZkSyncWalletStore()
+    const isFinalized = await useBattleChainWalletStore()
       .getL1VoidSigner(true)
       .then((signer) => signer.isWithdrawalFinalized(transaction.transactionHash))
       .catch(() => false);

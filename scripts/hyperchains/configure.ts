@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* 
-  This file will look for hyperchain configuration files on the zksync-era repo
+  This file will look for hyperchain configuration files on the battle-chain repo
   and generate a /hyperchains/config.json file for the Portal.
 */
 import { parse as envParse } from "dotenv";
@@ -13,9 +13,9 @@ import { generateNetworkConfig, logUserInfo, promptNetworkReplacement } from "./
 import type { Network } from "./common";
 import type { Token } from "../../types";
 
-const rootPath = process.env.ZKSYNC_HOME;
+const rootPath = process.env.BATTLE_CHAIN_HOME;
 if (!rootPath) {
-  console.error("Please set ZKSYNC_HOME environment variable to contain path to your zksync-era repo.");
+  console.error("Please set BATTLE_CHAIN_HOME environment variable to contain path to your battle-chain repo.");
   process.exit(1);
 }
 
@@ -42,9 +42,9 @@ const createNetworkFromEnv = (envPath: string): Network => {
 
   const l1ChainName = env.CHAIN_ETH_NETWORK.charAt(0).toUpperCase() + env.CHAIN_ETH_NETWORK.slice(1);
   return {
-    id: Number(env.CHAIN_ETH_ZKSYNC_NETWORK_ID),
+    id: Number(env.CHAIN_ETH_BATTLE_CHAIN_NETWORK_ID),
     key: baseName,
-    name: env.CHAIN_ETH_ZKSYNC_NETWORK,
+    name: env.CHAIN_ETH_BATTLE_CHAIN_NETWORK,
     rpcUrl: env.API_WEB3_JSON_RPC_HTTP_URL,
     l1Network: {
       id: Number(env.ETH_CLIENT_CHAIN_ID),
@@ -79,7 +79,7 @@ const promptNetworkEnv = async () => {
         })
         .map((file) => file.name);
       if (!envs.length) {
-        console.error("No environment files found in your zksync-era repo. Please set up your hyperchain first.");
+        console.error("No environment files found in your battle-chain repo. Please set up your hyperchain first.");
         process.exit(1);
       }
       return envs;

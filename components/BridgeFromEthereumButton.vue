@@ -11,15 +11,15 @@
       variant="primary"
     >
       <template #label>
-        <span class="text-white">Bridge from {{ eraNetwork.l1Network?.name }}</span>
+        <span class="text-white">Bridge from {{ bcNetwork.l1Network?.name }}</span>
       </template>
       <template #underline>
         <span v-if="!displayTotalTokens || !balance" class="text-white">
-          Receive tokens from your {{ eraNetwork.l1Network?.name }} account
+          Receive tokens from your {{ bcNetwork.l1Network?.name }} account
         </span>
         <span v-else class="text-white">
           You have {{ balance.length }} token{{ balance.length > 1 ? "s" : "" }} worth
-          {{ formatPricePretty(totalTokenBalance) }} that you can receive from {{ eraNetwork.l1Network?.name }}
+          {{ formatPricePretty(totalTokenBalance) }} that you can receive from {{ bcNetwork.l1Network?.name }}
         </span>
       </template>
     </DestinationItem>
@@ -27,10 +27,10 @@
 </template>
 
 <script lang="ts" setup>
-const zkSyncEthereumBalanceStore = useZkSyncEthereumBalanceStore();
+const battleChainEthereumBalanceStore = useBattleChainEthereumBalanceStore();
 const { destinations } = storeToRefs(useDestinationsStore());
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
-const { balance } = storeToRefs(zkSyncEthereumBalanceStore);
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
+const { balance } = storeToRefs(battleChainEthereumBalanceStore);
 
 const totalTokenBalance = computed(() => {
   if (!balance.value) {
@@ -47,8 +47,8 @@ const displayTotalTokens = computed(() => {
 });
 
 onMounted(() => {
-  if (eraNetwork.value.blockExplorerApi) {
-    zkSyncEthereumBalanceStore.requestBalance();
+  if (bcNetwork.value.blockExplorerApi) {
+    battleChainEthereumBalanceStore.requestBalance();
   }
 });
 </script>

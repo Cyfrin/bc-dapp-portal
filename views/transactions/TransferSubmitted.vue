@@ -58,5 +58,5 @@ defineProps({
   },
 });
 
-const { blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
+const { blockExplorerUrl } = storeToRefs(useBattleChainProviderStore());
 </script>

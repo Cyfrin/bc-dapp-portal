@@ -10,8 +10,8 @@ import type { Hash } from "@/types";
 import type { Address } from "viem";
 
 export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount: Ref<bigint>) => {
-  const providerStore = useZkSyncProviderStore();
-  const { eraNetwork } = storeToRefs(providerStore);
+  const providerStore = useBattleChainProviderStore();
+  const { bcNetwork } = storeToRefs(providerStore);
   const { captureException } = useSentryLogger();
 
   const isNativeToken = ref<boolean | null>(null);
@@ -36,19 +36,19 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
         abi: L2_NATIVE_TOKEN_VAULT_ABI,
         functionName: "assetId",
         args: [tokenAddress.value],
-        chainId: eraNetwork.value.id,
+        chainId: bcNetwork.value.id,
       })) as string;
       const originChainId: bigint = (await readContract(wagmiConfig, {
         address: L2_NATIVE_TOKEN_VAULT_ADDRESS,
         abi: L2_NATIVE_TOKEN_VAULT_ABI,
         functionName: "originChainId",
         args: [assetId.value],
-        chainId: eraNetwork.value.id,
+        chainId: bcNetwork.value.id,
       })) as bigint;
 
       const accountAddress = getAccount(wagmiConfig).address;
       approvedAllowance.value = (await readContract(wagmiConfig, {
-        chainId: eraNetwork.value.id,
+        chainId: bcNetwork.value.id,
         address: tokenAddress.value as Address,
         abi: IERC20_ABI,
         functionName: "allowance",
@@ -56,7 +56,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
       })) as bigint;
 
       allowanceCheckInProgress.value = false;
-      isNativeToken.value = BigInt(eraNetwork.value.id) === originChainId;
+      isNativeToken.value = BigInt(bcNetwork.value.id) === originChainId;
     },
     { immediate: true }
   );
@@ -100,7 +100,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
 
         setAllowanceStatus.value = "waiting-for-signature";
         const txApproveHash = await writeContract(wagmiConfig, {
-          chainId: eraNetwork.value.id,
+          chainId: bcNetwork.value.id,
           address: tokenAddress.value as Address,
           abi: IERC20_ABI,
           functionName: "approve",
@@ -113,7 +113,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
         const receipt = await retry(
           () =>
             waitForTransactionReceipt(wagmiConfig, {
-              chainId: eraNetwork.value.id,
+              chainId: bcNetwork.value.id,
               hash: txApproveHash,
               onReplaced: (replacement) => {
                 setAllowanceTransactionHashes.value[0] = replacement.transaction.hash;
@@ -126,7 +126,7 @@ export const useNativeAllowance = (tokenAddress: Ref<string | undefined>, amount
         );
 
         approvedAllowance.value = (await readContract(wagmiConfig, {
-          chainId: eraNetwork.value.id,
+          chainId: bcNetwork.value.id,
           address: tokenAddress.value as Address,
           abi: IERC20_ABI,
           functionName: "allowance",

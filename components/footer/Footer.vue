@@ -2,7 +2,7 @@
   <footer class="footer">
     <div>
       <CommonButtonLabel v-if="showAddNetworkButton" @click="addNetworkToWallet()">
-        Add {{ eraNetwork.name }} to your wallet
+        Add {{ bcNetwork.name }} to your wallet
       </CommonButtonLabel>
     </div>
     <div class="links-container">
@@ -12,10 +12,10 @@
           {{ portalRuntimeConfig.gitCommitHash }}
         </span>
       </CommonButtonLabel>
-      <CommonButtonLabel as="a" href="https://zksync.io/terms" target="_blank" class="footer-link">
+      <CommonButtonLabel as="a" href="https://battlechain.com/terms" target="_blank" class="footer-link">
         Terms of Service
       </CommonButtonLabel>
-      <CommonButtonLabel as="a" href="https://zksync.io/privacy" target="_blank" class="footer-link">
+      <CommonButtonLabel as="a" href="https://battlechain.com/privacy" target="_blank" class="footer-link">
         Privacy Policy
       </CommonButtonLabel>
     </div>
@@ -24,12 +24,12 @@
 
 <script lang="ts" setup>
 const portalRuntimeConfig = usePortalRuntimeConfig();
-const eraWalletStore = useZkSyncWalletStore();
-const { isCorrectNetworkSet } = storeToRefs(eraWalletStore);
+const bcWalletStore = useBattleChainWalletStore();
+const { isCorrectNetworkSet } = storeToRefs(bcWalletStore);
 const { isConnected, connectorName } = storeToRefs(useOnboardStore());
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 const addNetworkToWallet = async () => {
-  await eraWalletStore.setCorrectNetwork();
+  await bcWalletStore.setCorrectNetwork();
 };
 
 const showAddNetworkButton = computed(() => {

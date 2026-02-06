@@ -12,7 +12,7 @@ on:
         required: false
       targetUrl:
         type: string
-        default: 'https://staging-portal.zksync.dev/'
+        default: 'https://staging-portal.battlechain.com/'
         required: true
       network:
         type: string

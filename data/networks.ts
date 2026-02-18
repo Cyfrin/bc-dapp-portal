@@ -104,7 +104,7 @@ const publicChains: BattleChainNetwork[] = [
     id: 627,
     key: "testnet",
     name: "BattleChain Testnet",
-    rpcUrl: "http://testnet.battlechain.com:8051",
+    rpcUrl: "https://testnet.battlechain.com:8051",
     blockExplorerUrl: "https://explorer.testnet.battlechain.com",
     blockExplorerApi: "https://block-explorer-api.testnet.battlechain.com",
     displaySettings: {

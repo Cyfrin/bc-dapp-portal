@@ -27,7 +27,7 @@ export const useOnboardStore = defineStore("onboard", () => {
   const connectingWalletError = ref<string | undefined>();
   const connectorName = ref(account.value.connector?.name);
   const walletName = ref<string | undefined>();
-  const walletWarningDisabled = useStorage("zksync-bridge-wallet-warning-disabled", false);
+  const walletWarningDisabled = useStorage("battlechain-bridge-wallet-warning-disabled", false);
   const walletNotSupported = computed(() => {
     if (walletWarningDisabled.value) return false;
     if (!walletName.value) return false;
@@ -54,8 +54,8 @@ export const useOnboardStore = defineStore("onboard", () => {
   const web3modal = createWeb3Modal({
     wagmiConfig,
     projectId: portalRuntimeConfig.walletConnectProjectId!,
-    termsConditionsUrl: "https://zksync.io/terms",
-    privacyPolicyUrl: "https://zksync.io/privacy",
+    termsConditionsUrl: "https://battlechain.com/terms",
+    privacyPolicyUrl: "https://battlechain.com/privacy",
     themeMode: selectedColorMode.value,
   });
 

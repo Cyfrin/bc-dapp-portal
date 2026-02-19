@@ -1,28 +1,28 @@
-![ZKsync Portal](public/preview.png)
+![Battle Chain Portal](public/preview.png)
 
-# ZKsync Portal 🚀
+# Battle Chain Portal 🚀
 
-**ZKsync Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both ZKsync versions - every interaction smooth and efficient.
+**Battle Chain Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both Battle Chain versions - every interaction smooth and efficient.
 
 ## ✨ Features
 
-- 🖥️ Intuitive interface for managing, sending, and bridging ZKsync Era.
+- 🖥️ Intuitive interface for managing, sending, and bridging Battle Chain.
 - 📇 Ability to add contacts for quick and easy access.
-- 🔧 Effortless setup and connection to local ZKsync nodes or ZK Stack Hyperchains.
+- 🔧 Effortless setup and connection to local Battle Chain nodes or ZK Stack Hyperchains.
 
 ## 🎉 Try it out!
 
-- 🌐 Dive in now at [portal.zksync.io](https://portal.zksync.io/).
+- 🌐 Dive in now at [portal.battlechain.com](https://portal.battlechain.com/).
 
 ---
 
 ## 🌍 Connecting to local node
 
-Harness the Portal's power to connect to your [local ZKsync Era node](https://docs.zksync.io/zksync-node/quickstart).
+Harness the Portal's power to connect to your [local Battle Chain node](https://docs.battlechain.com/battlechain-node/quickstart).
 
 **Prerequisites:** Node.js version 16+, npm version 7+
 
-1. 📚 Follow the [documentation](https://docs.zksync.io/zksync-node/quickstart) for setting up either an **in-memory node** or **dockerized local setup**.
+1. 📚 Follow the [documentation](https://docs.battlechain.com/battlechain-node/quickstart) for setting up either an **in-memory node** or **dockerized local setup**.
 2. 🔄 Clone the Portal repository and set it up:
    ```bash
    git clone https://github.com/matter-labs/dapp-portal.git

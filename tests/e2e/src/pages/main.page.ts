@@ -239,7 +239,7 @@ export class MainPage extends BasePage {
       const selector = `//*[contains(@href,'${link}')]` + this.externalLinkArrow;
       await this.verifyElement("xpath", selector, checkType);
     } else if (externalLinkName === "Transfer" || externalLinkName === "Withdraw") {
-      link = "https://goerli.explorer.zksync.io/tx";
+      link = "https://goerli.explorer.battlechain.com/tx";
       const selector = this.modalCard + `//*[contains(@href,'${link}')]` + this.externalLinkArrow;
       await this.verifyElement("xpath", selector, checkType);
     } else if (externalLinkName === "Deposit") {
@@ -273,10 +273,10 @@ export class MainPage extends BasePage {
     await this.click(this.networkSwitcher);
 
     if (
-      networkName === "ZKsync Era Mainnet" ||
-      networkName === "ZKsync Era Testnet" ||
-      networkName === "ZKsync Lite Mainnet" ||
-      networkName === "ZKsync Lite Goerli"
+      networkName === "Battle Chain Mainnet" ||
+      networkName === "Battle Chain Testnet" ||
+      networkName === "Battle Chain Lite Mainnet" ||
+      networkName === "Battle Chain Lite Goerli"
     ) {
       result = `//*[text()='${networkName}']`;
     } else {

@@ -2,8 +2,8 @@
   <div>
     <CommonAlert variant="warning" size="sm" :icon="ExclamationTriangleIcon" class="mb-block-gap">
       <p>
-        Only {{ eraNetwork.nativeCurrency!.symbol }} is allowed for bridging {{ type === "withdraw" ? "from" : "to" }}
-        {{ eraNetwork.name }}.
+        Only {{ bcNetwork.nativeCurrency!.symbol }} is allowed for bridging {{ type === "withdraw" ? "from" : "to" }}
+        {{ bcNetwork.name }}.
       </p>
     </CommonAlert>
   </div>
@@ -12,10 +12,10 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
-import type { ZkSyncNetwork } from "@/data/networks"; // Adjust the import path as needed
+import type { BattleChainNetwork } from "@/data/networks"; // Adjust the import path as needed
 
 defineProps<{
-  eraNetwork: ZkSyncNetwork;
+  bcNetwork: BattleChainNetwork;
   type: "withdraw" | "deposit";
 }>();
 </script>

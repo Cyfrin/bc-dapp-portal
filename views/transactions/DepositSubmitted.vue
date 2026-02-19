@@ -33,7 +33,7 @@
       :failed="transaction.info.failed"
     />
 
-    <EcosystemBlock v-if="eraNetwork.displaySettings?.showPartnerLinks" class="mt-block-gap" />
+    <!--EcosystemBlock v-if="bcNetwork.displaySettings?.showPartnerLinks" class="mt-block-gap" /-->
     <CommonButton
       size="sm"
       :as="makeAnotherTransaction ? undefined : 'RouterLink'"
@@ -59,5 +59,5 @@ defineProps({
 });
 
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
-const { eraNetwork, blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
+const { /* bcNetwork, */ blockExplorerUrl } = storeToRefs(useBattleChainProviderStore());
 </script>

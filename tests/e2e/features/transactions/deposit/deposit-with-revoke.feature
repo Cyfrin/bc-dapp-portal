@@ -26,7 +26,7 @@ Feature: Deposit
     #Then Modal card element with the "//*[@class='line-button-with-img-icon']" xpath should be "clickable"
     #Then Modal card element with the "//*[text()=' Please wait until ']" xpath should be "visible"
     #Then Modal card element with the "//*[text()=' allowance transaction for ']" xpath should be "visible"
-    #Then Modal card element with the "//*[text()='zkSync Era Testnet']" xpath should be "visible"
+    #Then Modal card element with the "//*[text()='battleChain Era Testnet']" xpath should be "visible"
     #Then Modal card element with the "//*[text()='Ethereum Goerli Testnet']" xpath should be "visible"
     #Then Modal card element with the "//*[contains(text(),'Track status')]" xpath should be "visible"
     #Then Modal card element with the "//*[contains(text(),'Track status')]" xpath should be "clickable"
@@ -42,11 +42,11 @@ Feature: Deposit
     #Then Modal card element with the "//*[@class='line-button-with-img-icon']" xpath should be "clickable"
     #Then Modal card element with the "//*[text()=' Allowance for ']" xpath should be "visible"
     #Then Modal card element with the "//*[text()=' is successfully approved for ']" xpath should be "visible"
-    #Then Modal card element with the "//*[text()='zkSync Era Testnet']" xpath should be "visible"
+    #Then Modal card element with the "//*[text()='battleChain Era Testnet']" xpath should be "visible"
     #Then Modal card element with the "//*[text()=' network. You can now proceed with the deposit ']" xpath should be "visible"
     ### end of 1439
     #Then I approve allowance after clicking "Approve allowance" button
-    #When I "confirm" transaction after clicking "Add funds to zkSync Era Testnet" button
+    #When I "confirm" transaction after clicking "Add funds to battleChain Era Testnet" button
     #Then Modal card element with the "//*[contains(text(),'Track status')]" xpath should be "visible"
     #Then Modal card element with the "//*[contains(text(),'Track status')]" xpath should be "clickable"
     #Then Message "Transaction submitted" should be visible

@@ -138,7 +138,7 @@ import {
 
 import { chainList } from "@/data/networks";
 
-import type { ZkSyncNetwork } from "@/data/networks";
+import type { BattleChainNetwork } from "@/data/networks";
 
 const mainnetList = computed(() => chainList.filter((e) => e.displaySettings && !e.displaySettings.isTestnet));
 const testnetList = computed(() => chainList.filter((e) => e.displaySettings && e.displaySettings.isTestnet));
@@ -156,7 +156,7 @@ const emit = defineEmits<{
 
 const route = useRoute();
 
-const { withdrawalsAvailableForClaiming } = storeToRefs(useZkSyncWithdrawalsStore());
+const { withdrawalsAvailableForClaiming } = storeToRefs(useBattleChainWithdrawalsStore());
 
 const TabsTransition = computed(() =>
   openedTab.value === "main" ? TransitionSlideOutToRight : TransitionSlideOutToLeft
@@ -179,8 +179,8 @@ watch(
 const { switchColorMode, selectedColorMode } = useColorMode();
 
 const { selectedNetwork } = storeToRefs(useNetworkStore());
-const isNetworkSelected = (network: ZkSyncNetwork) => selectedNetwork.value.key === network.key;
-const buttonClicked = (network: ZkSyncNetwork) => {
+const isNetworkSelected = (network: BattleChainNetwork) => selectedNetwork.value.key === network.key;
+const buttonClicked = (network: BattleChainNetwork) => {
   if (isNetworkSelected(network)) {
     return;
   }

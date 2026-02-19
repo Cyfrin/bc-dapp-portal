@@ -45,7 +45,7 @@ Feature: Withdraw
     When I click by text " Continue "
     Then Element with "text" "Confirm transaction" should be "visible"
     Then Element with "text" "Your Ethereum Goerli Testnet account" should be "visible"
-    Then Element with "text" "Your ZKsync Era Testnet account" should be "visible"
+    Then Element with "text" "Your Battle Chain Testnet account" should be "visible"
     Then Element with "partial class" "address-card-avatar" should be "visible"
     Then Modal card element with the "//*[text()='0x2CF4...75d']" xpath should be "visible"
     Then Modal card element with the "//*[@alt='ETH token icon']" xpath should be "visible"
@@ -61,7 +61,7 @@ Feature: Withdraw
 
   @id1436 @tokens
   Scenario Outline:  Withdraw - Check search functionality for Choose Tokens (with results)
-    Given I go to page "/transaction/zksync/era/withdraw/?network=era-<network>"
+    Given I go to page "/transaction/battlechain/era/withdraw/?network=era-<network>"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     When I fill the input field contains "placeholder" type "Symbol or address" value with "USDC" text
@@ -77,12 +77,12 @@ Feature: Withdraw
 
   @id1564 @tokens
   Scenario Outline:  Withdraw - Check search functionality for Choose Tokens (no results)
-    Given I go to page "/transaction/zksync/era/withdraw/?network=era-<network>"
+    Given I go to page "/transaction/battlechain/era/withdraw/?network=era-<network>"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     When I fill the input field contains "placeholder" type "Symbol or address" value with "AAA" text
     Then Element with "partial string" 'No tokens was found for "AAA"' should be "visible"
-    Then Element with "partial text" "Make sure you are using correct ZKsync network" should be "visible"
+    Then Element with "partial text" "Make sure you are using correct Battle Chain network" should be "visible"
 
     Examples:
       | network |
@@ -91,7 +91,7 @@ Feature: Withdraw
 
   @id1644:I @tokens @testnet
   Scenario: Check artifacts on tokens dropdown on Withdraw page (Testnet)
-    Given I go to page "/transaction/zksync/era/withdraw/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/withdraw/?network=era-goerli"
     When I click by "testId" with "your-account" value
     Then Element with "testId" "token-dropDown" should be "clickable"
     Then I click by "testId" with "token-dropDown" value
@@ -102,7 +102,7 @@ Feature: Withdraw
 
   @id1644:II @tokens @testnet
   Scenario Outline: Check tokens artifacts dropdown on Withdraw page (Testnet)
-    Given I go to page "/transaction/zksync/era/withdraw/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/withdraw/?network=era-goerli"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "<TokenName>" should be "visible"
@@ -119,7 +119,7 @@ Feature: Withdraw
 
   @id1642 @tokens @mainnet
   Scenario: Check tokens artifacts dropdown on Withdraw page (Mainnet)
-    Given I go to page "/transaction/zksync/era/withdraw/?network=era-mainnet"
+    Given I go to page "/transaction/battlechain/era/withdraw/?network=era-mainnet"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "Choose token" should be "visible"

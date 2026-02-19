@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NetworkDeprecationAlert v-if="step === 'form'" />
+    <!--NetworkDeprecationAlert v-if="step === 'form'" />-->
     <slot v-if="step === 'form'" name="title" />
     <PageTitle
       v-else-if="step === 'withdrawal-finalization-warning'"
@@ -109,7 +109,7 @@
         />
         <TransactionNativeBridge
           v-if="nativeTokenBridgingOnly"
-          :era-network="eraNetwork"
+          :bc-network="bcNetwork"
           type="withdraw"
           class="mt-6"
         ></TransactionNativeBridge>
@@ -124,8 +124,8 @@
             fees. You may also choose to use a third-party bridge to withdraw funds, at your own risk.
           </p>
           <p v-else>
-            After transaction is executed on {{ eraNetwork.l1Network?.name }}, you will need to claim your funds which
-            requires paying another transaction fee on {{ eraNetwork.l1Network?.name }}.
+            After transaction is executed on {{ bcNetwork.l1Network?.name }}, you will need to claim your funds which
+            requires paying another transaction fee on {{ bcNetwork.l1Network?.name }}.
           </p>
         </CommonAlert>
         <CommonButton variant="primary" class="mx-auto mt-block-gap w-max" @click="buttonContinue()">
@@ -229,7 +229,7 @@
             :token-address="selectedTokenAddress!"
             :asset-id="assetId!"
             :enough-allowance="amountToTransferIsApproved"
-            :block-explorer-url="eraNetwork.blockExplorerUrl"
+            :block-explorer-url="bcNetwork.blockExplorerUrl"
             :allowance="approvedAllowance"
             :set-allowance-receipts="approveAllowanceReceipt"
             :set-allowance-transaction-hashes="setAllowanceTransactionHashes"
@@ -317,16 +317,16 @@ import { useRouteQuery } from "@vueuse/router";
 import { isAddress } from "ethers";
 
 import AllowancePanel from "@/components/transaction/AllowancePanel.vue";
+import useFee from "@/composables/battlechain/useFee";
+import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/battlechain/useTransaction";
 import { useNativeAllowance } from "@/composables/transaction/useNativeAllowance";
 import { useSentryLogger } from "@/composables/useSentryLogger";
-import useFee from "@/composables/zksync/useFee";
-import useTransaction, { isWithdrawalManualFinalizationRequired } from "@/composables/zksync/useTransaction";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 import TransferSubmitted from "@/views/transactions/TransferSubmitted.vue";
 import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
 
-import type { FeeEstimationParams } from "@/composables/zksync/useFee";
+import type { FeeEstimationParams } from "@/composables/battlechain/useFee";
 import type { Token, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
 import type { Address } from "viem";
@@ -342,11 +342,11 @@ const route = useRoute();
 const router = useRouter();
 
 const onboardStore = useOnboardStore();
-const walletStore = useZkSyncWalletStore();
-const tokensStore = useZkSyncTokensStore();
-const providerStore = useZkSyncProviderStore();
+const walletStore = useBattleChainWalletStore();
+const tokensStore = useBattleChainTokensStore();
+const providerStore = useBattleChainProviderStore();
 const { account, isConnected } = storeToRefs(onboardStore);
-const { eraNetwork } = storeToRefs(providerStore);
+const { bcNetwork } = storeToRefs(providerStore);
 const { destinations } = storeToRefs(useDestinationsStore());
 const { tokens, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(walletStore);
@@ -374,7 +374,7 @@ const availableTokens = computed(() => {
   const list = getTokensWithCustomBridgeTokens(
     Object.values(tokens.value),
     AddressChainType.L2,
-    eraNetwork.value.l1Network?.id
+    bcNetwork.value.l1Network?.id
   );
   if (props.type === "withdrawal") {
     return list.filter((e) => e.l1Address);
@@ -417,7 +417,7 @@ const tokenCustomBridge = computed(() => {
     return undefined;
   }
   const customBridgeToken = customBridgeTokens.find(
-    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.l1Address
+    (e) => bcNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.l1Address
   );
   if (!customBridgeToken?.bridges.some((e) => e.withdrawUrl)) {
     return undefined;
@@ -558,7 +558,7 @@ const withdrawalManualFinalizationRequired = computed(() => {
   if (!transaction.value) return false;
   return (
     props.type === "withdrawal" &&
-    isWithdrawalManualFinalizationRequired(transaction.value.token, eraNetwork.value.l1Network?.id || -1)
+    isWithdrawalManualFinalizationRequired(transaction.value.token, bcNetwork.value.l1Network?.id || -1)
   );
 });
 
@@ -647,10 +647,10 @@ watch(
 
 const nativeTokenBridgingOnly = computed(() => {
   if (
-    eraNetwork.value.nativeTokenBridgingOnly &&
-    eraNetwork.value.nativeCurrency &&
+    bcNetwork.value.nativeTokenBridgingOnly &&
+    bcNetwork.value.nativeCurrency &&
     selectedToken.value &&
-    selectedToken.value.symbol !== eraNetwork.value.nativeCurrency.symbol
+    selectedToken.value.symbol !== bcNetwork.value.nativeCurrency.symbol
   ) {
     return true;
   }
@@ -693,14 +693,14 @@ const buttonContinue = () => {
 };
 
 /* Transaction signing and submitting */
-const transfersHistoryStore = useZkSyncTransfersHistoryStore();
+const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { previousTransactionAddress } = storeToRefs(usePreferencesStore());
 const {
   status: transactionStatus,
   error: transactionError,
   commitTransaction,
 } = useTransaction(walletStore.getSigner, providerStore.requestProvider);
-const { saveTransaction, waitForCompletion } = useZkSyncTransactionStatusStore();
+const { saveTransaction, waitForCompletion } = useBattleChainTransactionStatusStore();
 
 watch(step, (newStep) => {
   if (newStep === "form") {
@@ -755,7 +755,7 @@ const makeTransaction = async () => {
       router.resolve({
         name: "transaction-hash",
         params: { hash: transactionInfo.value.transactionHash },
-        query: { network: eraNetwork.value.key },
+        query: { network: bcNetwork.value.key },
       }).href
     );
     waitForCompletion(transactionInfo.value)

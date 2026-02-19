@@ -55,12 +55,12 @@
           <CommonButtonBack size="sm" @click="openedTab = 'main'" />
           <span class="text-lg">Help</span>
         </div>
-        <CommonCardWithLineButtons class="mt-block-padding-1/2">
+        <!--CommonCardWithLineButtons class="mt-block-padding-1/2">
           <DestinationItem
             label="Discord"
             description="Get support, follow announcements and connect with community"
             as="a"
-            href="https://join.zksync.dev/"
+            href="https://join.battlechain.com/"
             target="_blank"
             :icon="ArrowTopRightOnSquareIcon"
             size="sm"
@@ -71,13 +71,13 @@
               </div>
             </template>
           </DestinationItem>
-        </CommonCardWithLineButtons>
-        <CommonCardWithLineButtons class="mt-block-padding-1/2">
+        </CommonCardWithLineButtons-->
+        <!--CommonCardWithLineButtons class="mt-block-padding-1/2">
           <DestinationItem
             label="FAQ"
             description="Find tutorials and answers to the most common questions"
             as="a"
-            href="https://matterlabs.gitbook.io/zksync-community-hub/support/faq"
+            href="https://matterlabs.gitbook.io/battlechain-community-hub/support/faq"
             target="_blank"
             :icon="ArrowTopRightOnSquareIcon"
             size="sm"
@@ -88,13 +88,13 @@
               </DestinationIconContainer>
             </template>
           </DestinationItem>
-        </CommonCardWithLineButtons>
+        </CommonCardWithLineButtons-->
         <CommonCardWithLineButtons class="mt-block-padding-1/2">
           <DestinationItem
             label="Official Documentation"
-            description="Developer resources and technical ZKsync documentation"
+            description="Developer resources and technical Battle Chain documentation"
             as="a"
-            href="https://era.zksync.io"
+            href="https://docs.battlechain.com"
             target="_blank"
             :icon="ArrowTopRightOnSquareIcon"
             size="sm"
@@ -120,7 +120,7 @@ import {
   DocumentDuplicateIcon,
   InformationCircleIcon,
   PowerIcon,
-  QuestionMarkCircleIcon,
+  // QuestionMarkCircleIcon,
   Squares2X2Icon,
 } from "@heroicons/vue/24/outline";
 

@@ -6,7 +6,7 @@ import IZkSyncHyperchain from "zksync-ethers/abi/IZkSyncHyperchain.json";
 
 import { selectL2ToL1LogIndex, isLocalRootIsZero } from "@/utils/helpers";
 
-import type { FeeEstimationParams } from "@/composables/zksync/useFee";
+import type { FeeEstimationParams } from "@/composables/battlechain/useFee";
 import type { TokenAmount, Hash } from "@/types";
 
 export type TransactionInfo = {
@@ -28,29 +28,29 @@ export type TransactionInfo = {
 export const ESTIMATED_DEPOSIT_DELAY = 15 * 1000; // 15 seconds
 export const WITHDRAWAL_DELAY = 5 * 60 * 60 * 1000; // 5 hours
 
-// @zksyncos ZKsyncOS does not include getTransactionDetails so using executeTxHash as an
+// @zksyncos Battle Chain does not include getTransactionDetails so using executeTxHash as an
 // indicator of finalization readiness is not available. Instead (a bit hacky), we first check
 // tx receipt on L2 for success, query zks_getL1L2LogProofs to ensure tx is included in the batch
 // and then make an simulation attempt to `finalizeDeposit` to see if we hit `LocalRootIsZero()`
 // if so we know its not ready yet. If not we proceed to mark as ready.
 // This approach is not ideal and may need to be refined in the future.
 
-export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionStatus", () => {
+export const useBattleChainTransactionStatusStore = defineStore("battleChainTransactionStatus", () => {
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
+  const providerStore = useBattleChainProviderStore();
   const { account } = storeToRefs(onboardStore);
-  const { eraNetwork } = storeToRefs(providerStore);
+  const { bcNetwork } = storeToRefs(providerStore);
 
   const storageSavedTransactions = useStorage<{ [networkKey: string]: TransactionInfo[] }>(
-    "zksync-bridge-transactions",
+    "battlechain-bridge-transactions",
     {}
   );
   const savedTransactions = computed<TransactionInfo[]>({
     get: () => {
-      return storageSavedTransactions.value[eraNetwork.value.key] || [];
+      return storageSavedTransactions.value[bcNetwork.value.key] || [];
     },
     set: (transactions: TransactionInfo[]) => {
-      storageSavedTransactions.value[eraNetwork.value.key] = transactions;
+      storageSavedTransactions.value[bcNetwork.value.key] = transactions;
     },
   });
   const userTransactions = computed(() =>
@@ -173,7 +173,7 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
         const wallet = new Wallet("0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110", provider);
         const p = await wallet.getFinalizeWithdrawalParams(transaction.transactionHash);
 
-        const l1Signer = await useZkSyncWalletStore().getL1VoidSigner(true);
+        const l1Signer = await useBattleChainWalletStore().getL1VoidSigner(true);
         const bridges = await provider.getDefaultBridgeAddresses();
         const l1NullifierAddr = await typechain.IL1AssetRouter__factory.connect(
           bridges.sharedL1,
@@ -217,7 +217,7 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     }
 
     // Finalization check on L1
-    const l1signer = await useZkSyncWalletStore().getL1VoidSigner(true);
+    const l1signer = await useBattleChainWalletStore().getL1VoidSigner(true);
     const isFinalized = await l1signer.isWithdrawalFinalized(transaction.transactionHash).catch(() => false);
 
     transaction.info.completed = isFinalized;

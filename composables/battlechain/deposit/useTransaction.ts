@@ -8,13 +8,13 @@ import { useSentryLogger } from "@/composables/useSentryLogger";
 import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
 import { wagmiConfig } from "@/data/wagmi";
 
-import type { DepositFeeValues } from "@/composables/zksync/deposit/useFee";
+import type { DepositFeeValues } from "@/composables/battlechain/deposit/useFee";
 
 export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "done">("not-started");
   const error = ref<Error | undefined>();
   const ethTransactionHash = ref<Hash | undefined>();
-  const eraWalletStore = useZkSyncWalletStore();
+  const bcWalletStore = useBattleChainWalletStore();
   const { captureException } = useSentryLogger();
 
   const { validateAddress } = useScreening();
@@ -104,7 +104,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       const wallet = await getL1Signer();
       if (!wallet) throw new Error("Wallet is not available");
 
-      await eraWalletStore.walletAddressValidate();
+      await bcWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
 
       status.value = "waiting-for-signature";
@@ -149,7 +149,7 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [transaction, fee],
-        filePath: "composables/zksync/deposit/useTransaction.ts",
+        filePath: "composables/battlechain/deposit/useTransaction.ts",
       });
     }
   };

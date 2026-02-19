@@ -22,7 +22,7 @@ import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
 
 const route = useRoute();
 
-const transactionStatusStore = useZkSyncTransactionStatusStore();
+const transactionStatusStore = useBattleChainTransactionStatusStore();
 
 const completedTransaction = ref<TransactionInfo | null>(null);
 const savedTransaction = computed(() => {

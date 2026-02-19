@@ -6,12 +6,12 @@ Feature: Artifacts - UI
 
   @id1560:I @testnet
   Scenario: Check artifacts for an "Where to send" page (Testnet)
-    Given I go to page "/transaction/zksync/era/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/?network=era-goerli"
     Then Element with "text" "Where to send" should be "visible"
-    #zkSync Era item
-    Then Element with "text" "ZKsync Era Testnet" should be "visible"
-    Then Element with "text" "Send inside ZKsync Era Testnet network" should be "visible"
-    Then Element with "text" "ZKsync Era Testnet" should be "clickable"
+    #battleChain Era item
+    Then Element with "text" "Battle Chain Testnet" should be "visible"
+    Then Element with "text" "Send inside Battle Chain Testnet network" should be "visible"
+    Then Element with "text" "Battle Chain Testnet" should be "clickable"
     Then Element with "partial src" "/img/era.svg" should be "visible"
     Then Element with "partial src" "/img/era.svg" should be "clickable"
     #Ethereum item
@@ -20,12 +20,12 @@ Feature: Artifacts - UI
     Then Element with "text" "Ethereum Goerli Testnet" should be "clickable"
     Then Element with "partial src" "/img/ethereum.svg" should be "visible"
     Then Element with "partial src" "/img/ethereum.svg" should be "clickable"
-    #zkSync Lite item
-    Then Element with "text" "ZKsync Lite Goerli" should be "visible"
-    Then Element with "text" "Send to ZKsync Lite network" should be "visible"
-    Then Element with "text" "ZKsync Lite Goerli" should be "clickable"
-    Then Element with "partial src" "/img/zksync-lite.svg" should be "visible"
-    Then Element with "partial src" "/img/zksync-lite.svg" should be "clickable"
+    #battleChain Lite item
+    Then Element with "text" "Battle Chain Lite Goerli" should be "visible"
+    Then Element with "text" "Send to Battle Chain Lite network" should be "visible"
+    Then Element with "text" "Battle Chain Lite Goerli" should be "clickable"
+    Then Element with "partial src" "/img/battlechain-lite.svg" should be "visible"
+    Then Element with "partial src" "/img/battlechain-lite.svg" should be "clickable"
     Then Element with "text" "Send to exchange" should be "visible"
     #Official bridge item
     Then Element with "text" "Official bridge" should be "visible"
@@ -40,7 +40,7 @@ Feature: Artifacts - UI
 
   @id1560:II @testnet
   Scenario Outline: Check artifacts for an "Where to send" page (Testnet)
-    Given I go to page "/transaction/zksync/era/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/?network=era-goerli"
     Then Arrow element for "<Link name>" external link should be "visible"
     Then Arrow element for "<Link name>" external link should be "clickable"
 
@@ -51,12 +51,12 @@ Feature: Artifacts - UI
 
  @id1411:I @mainnet
  Scenario: Check artifacts for an "Where to send" page (Mainnet)
-    Given I go to page "/transaction/zksync/era/?network=era-mainnet"
+    Given I go to page "/transaction/battlechain/era/?network=era-mainnet"
     Then Element with "text" "Where to send" should be "visible"
-    #zkSync Era item
-    Then Element with "text" "zkSync Era Mainnet" should be "visible"
-    Then Element with "text" "Send inside zkSync Era Mainnet network" should be "visible"
-    Then Element with "text" "zkSync Era Mainnet" should be "clickable"
+    #battleChain Era item
+    Then Element with "text" "battleChain Era Mainnet" should be "visible"
+    Then Element with "text" "Send inside battleChain Era Mainnet network" should be "visible"
+    Then Element with "text" "battleChain Era Mainnet" should be "clickable"
     Then Element with "partial src" "/img/era.svg" should be "visible"
     Then Element with "partial src" "/img/era.svg" should be "clickable"
     #Ethereum item
@@ -65,12 +65,12 @@ Feature: Artifacts - UI
     Then Element with "text" "Ethereum Mainnet" should be "clickable"
     Then Element with "partial src" "/img/ethereum.svg" should be "visible"
     Then Element with "partial src" "/img/ethereum.svg" should be "clickable"
-    #zkSync Lite item
-    Then Element with "text" "zkSync Lite Mainnet" should be "visible"
-    Then Element with "text" "Send to zkSync Lite network" should be "visible"
-    Then Element with "text" "zkSync Lite Mainnet" should be "clickable"
-    Then Element with "partial src" "/img/zksync-lite.svg" should be "visible"
-    Then Element with "partial src" "/img/zksync-lite.svg" should be "clickable"
+    #battleChain Lite item
+    Then Element with "text" "battleChain Lite Mainnet" should be "visible"
+    Then Element with "text" "Send to battleChain Lite network" should be "visible"
+    Then Element with "text" "battleChain Lite Mainnet" should be "clickable"
+    Then Element with "partial src" "/img/battlechain-lite.svg" should be "visible"
+    Then Element with "partial src" "/img/battlechain-lite.svg" should be "clickable"
     Then Element with "text" "Send to exchange" should be "visible"
     #Official bridge item
     Then Element with "text" "Official bridge" should be "visible"
@@ -85,7 +85,7 @@ Feature: Artifacts - UI
 
  @id1411:II @mainnet
  Scenario Outline: Check artifacts for an "Where to send" page (Mainnet)
-    Given I go to page "/transaction/zksync/era/?network=era-mainnet"
+    Given I go to page "/transaction/battlechain/era/?network=era-mainnet"
     Then Arrow element for "<Link name>" external link should be "visible"
     Then Arrow element for "<Link name>" external link should be "clickable"
 

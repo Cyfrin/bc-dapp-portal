@@ -1,6 +1,6 @@
 {
-  "name": "zksync-dapp-portal",
-  "description": "ZKsync Portal provides Wallet and Bridge functionality for interacting with ZKsync",
+  "name": "battlechain-dapp-portal",
+  "description": "Battle Chain Portal provides Wallet and Bridge functionality for interacting with Battle Chain",
   "private": true,
   "scripts": {
     "dev": "nuxt dev",

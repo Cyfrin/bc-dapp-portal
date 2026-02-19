@@ -49,7 +49,7 @@ export class BasePage {
 
   async isImOnTheMainPage() {
     const expectedURL = this.world.page?.url();
-    const mainPageWithNetworkName = `${config.BASE_URL}${NetworkSwitcher.zkSyncEraGoerli}`;
+    const mainPageWithNetworkName = `${config.BASE_URL}${NetworkSwitcher.battleChainEraGoerli}`;
     const mainPageDefault = `${config.BASE_URL}/`;
     if (expectedURL == mainPageWithNetworkName || expectedURL == mainPageDefault) {
       return true;

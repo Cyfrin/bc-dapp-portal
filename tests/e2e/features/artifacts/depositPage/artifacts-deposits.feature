@@ -8,7 +8,7 @@ Feature: Artifacts - UI
   @id1438 @deposit
   Scenario: Check artifacts on the Approve allowance modal - Deposits
     Given I am on the Main page
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-goerli"
     When I click by "testId" with "your-account" value
     When I confirm the network switching
     When I choose "DAI" as token and insert "6" as amount
@@ -32,7 +32,7 @@ Feature: Artifacts - UI
   @id1398 @deposit
   Scenario: Check artifacts on the Confirm transaction modal - Deposits
     Given I am on the Main page
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-goerli"
     When I click by "testId" with "your-account" value
     When I confirm the network switching
     When I choose "ETH" as token and insert "0.0001" as amount
@@ -45,7 +45,7 @@ Feature: Artifacts - UI
   @id1336 @deposit
   Scenario: Check artifacts on the Add fund to page - Deposits
     Given I am on the Main page
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-goerli"
     When I click by "testId" with "your-account" value
     When I confirm the network switching
     Then Element with "text" "Add funds to" should be "visible"
@@ -64,7 +64,7 @@ Feature: Artifacts - UI
 
   @id1647 @tokens
   Scenario Outline:  Deposit - Check search functionality for Choose Tokens (with results)
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-<network>"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-<network>"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     When I fill the input field contains "placeholder" type "Symbol or address" value with "USDC" text
@@ -80,12 +80,12 @@ Feature: Artifacts - UI
 
   @id1648 @tokens
   Scenario Outline:  Deposit - Check search functionality for Choose Tokens (no results)
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-<network>"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-<network>"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     When I fill the input field contains "placeholder" type "Symbol or address" value with "AAA" text
     Then Element with "partial string" 'No tokens was found for "AAA"' should be "visible"
-    Then Element with "partial text" "Make sure you are using correct ZKsync network" should be "visible"
+    Then Element with "partial text" "Make sure you are using correct Battle Chain network" should be "visible"
 
     Examples:
       | network |
@@ -94,7 +94,7 @@ Feature: Artifacts - UI
 
   @id1641:I @tokens @testnet
   Scenario: Check artifacts on tokens dropdown on Deposit page (Testnet)
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-goerli"
     When I click by "testId" with "your-account" value
     Then Element with "testId" "token-dropDown" should be "clickable"
     Then I click by "testId" with "token-dropDown" value
@@ -105,7 +105,7 @@ Feature: Artifacts - UI
 
   @id1641:II @tokens @testnet
   Scenario Outline: Check artifacts on tokens dropdown on Deposit page (Testnet)
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-goerli"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "<TokenName>" should be "visible"
@@ -122,7 +122,7 @@ Feature: Artifacts - UI
 
   @id1643 @tokens @mainnet
   Scenario: Check artifacts on tokens dropdown on Deposit page (Mainnet)
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-mainnet"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-mainnet"
     When I click by "testId" with "your-account" value
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "Choose token" should be "visible"
@@ -239,7 +239,7 @@ Feature: Artifacts - UI
 
   @id1399
   Scenario: Check max button functionality - Deposit
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-goerli"
     Then Element with "text" "MAX" should be "invisible"
     When I click by "testId" with "your-account" value
     Then I confirm the network switching

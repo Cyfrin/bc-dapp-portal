@@ -7,43 +7,43 @@ import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/hel
 import type { Api, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
 
-export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
+export const useBattleChainWalletStore = defineStore("battleChainWallet", () => {
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
-  const tokensStore = useZkSyncTokensStore();
-  const { eraNetwork } = storeToRefs(providerStore);
+  const providerStore = useBattleChainProviderStore();
+  const tokensStore = useBattleChainTokensStore();
+  const { bcNetwork } = storeToRefs(providerStore);
   const { tokens } = storeToRefs(tokensStore);
   const { account } = storeToRefs(onboardStore);
   const { validateAddress } = useScreening();
 
   const { execute: getSigner, reset: resetSigner } = usePromise(async () => {
     const walletNetworkId = account.value.chain?.id;
-    if (walletNetworkId !== eraNetwork.value.id) {
+    if (walletNetworkId !== bcNetwork.value.id) {
       throw new Error(
-        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${eraNetwork.value.name} #${eraNetwork.value.id})`
+        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${bcNetwork.value.name} #${bcNetwork.value.id})`
       );
     }
 
-    const web3Provider = new BrowserProvider((await onboardStore.getWallet(eraNetwork.value.id)) as any, "any");
+    const web3Provider = new BrowserProvider((await onboardStore.getWallet(bcNetwork.value.id)) as any, "any");
     const rawEthersSigner = await web3Provider.getSigner();
-    const eraL2Signer = Signer.from(rawEthersSigner, await providerStore.requestProvider());
+    const bcL2Signer = Signer.from(rawEthersSigner, await providerStore.requestProvider());
 
-    return eraL2Signer;
+    return bcL2Signer;
   });
   const { execute: getL1Signer, reset: resetL1Signer } = usePromise(async () => {
-    if (!eraNetwork.value.l1Network) throw new Error(`L1 network is not available on ${eraNetwork.value.name}`);
+    if (!bcNetwork.value.l1Network) throw new Error(`L1 network is not available on ${bcNetwork.value.name}`);
 
     const walletNetworkId = account.value.chain?.id;
-    if (walletNetworkId !== eraNetwork.value.l1Network.id) {
+    if (walletNetworkId !== bcNetwork.value.l1Network.id) {
       throw new Error(
-        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${eraNetwork.value.l1Network.name} #${eraNetwork.value.l1Network.id})`
+        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${bcNetwork.value.l1Network.name} #${bcNetwork.value.l1Network.id})`
       );
     }
 
     const web3Provider = new BrowserProvider((await onboardStore.getWallet()) as any, "any");
     const rawL1Signer = (await web3Provider.getSigner()) as unknown as any;
-    const eraL1Signer = L1Signer.from(rawL1Signer, await providerStore.requestProvider());
-    return eraL1Signer;
+    const bcL1Signer = L1Signer.from(rawL1Signer, await providerStore.requestProvider());
+    return bcL1Signer;
   });
   const getL1VoidSigner = async (anyAddress = false) => {
     if (!account.value.address && !anyAddress) throw new Error("Address is not available");
@@ -62,10 +62,10 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     reset: resetAccountState,
   } = usePromise<Api.Response.Account | Api.Response.Contract>(async () => {
     if (!account.value.address) throw new Error("Account is not available");
-    if (!eraNetwork.value.blockExplorerApi)
-      throw new Error(`Block Explorer API is not available on ${eraNetwork.value.name}`);
+    if (!bcNetwork.value.blockExplorerApi)
+      throw new Error(`Block Explorer API is not available on ${bcNetwork.value.name}`);
 
-    return await $fetch(`${eraNetwork.value.blockExplorerApi}/address/${account.value.address}`);
+    return await $fetch(`${bcNetwork.value.blockExplorerApi}/address/${account.value.address}`);
   });
 
   const getBalancesFromBlockExplorerApi = async (): Promise<TokenAmount[]> => {
@@ -132,7 +132,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     reset: resetBalance,
   } = usePromise<TokenAmount[]>(
     async () => {
-      if (eraNetwork.value.blockExplorerApi) {
+      if (bcNetwork.value.blockExplorerApi) {
         return await getBalancesFromBlockExplorerApi();
       } else {
         return await getBalancesFromRPC();
@@ -175,7 +175,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       return bValue - aValue;
     });
 
-    return getBalancesWithCustomBridgeTokens(sortedTokens, AddressChainType.L2, eraNetwork.value.l1Network?.id);
+    return getBalancesWithCustomBridgeTokens(sortedTokens, AddressChainType.L2, bcNetwork.value.l1Network?.id);
   });
 
   const deductBalance = (tokenAddress: string, amount: BigNumberish) => {
@@ -188,7 +188,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
 
   const isCorrectNetworkSet = computed(() => {
     const walletNetworkId = account.value.chain?.id;
-    return walletNetworkId === eraNetwork.value.id;
+    return walletNetworkId === bcNetwork.value.id;
   });
   const {
     inProgress: switchingNetworkInProgress,
@@ -196,7 +196,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     execute: switchNetwork,
   } = usePromise(
     async () => {
-      return await onboardStore.switchNetworkById(eraNetwork.value.id, eraNetwork.value.name);
+      return await onboardStore.switchNetworkById(bcNetwork.value.id, bcNetwork.value.name);
     },
     { cache: false }
   );

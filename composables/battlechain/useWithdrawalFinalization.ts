@@ -16,9 +16,9 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const error = ref<Error | undefined>();
   const transactionHash = ref<Hash | undefined>();
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
-  const walletStore = useZkSyncWalletStore();
-  const tokensStore = useZkSyncTokensStore();
+  const providerStore = useBattleChainProviderStore();
+  const walletStore = useBattleChainWalletStore();
+  const tokensStore = useBattleChainTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { ethToken } = storeToRefs(tokensStore);
   const { captureException } = useSentryLogger();
@@ -71,12 +71,12 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
     // If not, look it up from the custom bridge tokens configuration
     if (!l1BridgeAddress) {
-      const { eraNetwork } = storeToRefs(providerStore);
+      const { bcNetwork } = storeToRefs(providerStore);
 
       const customBridgeToken = customBridgeTokens.find(
         (token) =>
           token.l2Address.toLowerCase() === transactionInfo.value.token.address.toLowerCase() &&
-          token.chainId === eraNetwork.value.l1Network?.id
+          token.chainId === bcNetwork.value.l1Network?.id
       );
 
       l1BridgeAddress = customBridgeToken?.l1BridgeAddress;
@@ -192,7 +192,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [],
-        filePath: "composables/zksync/useWithdrawalFinalization.ts",
+        filePath: "composables/battlechain/useWithdrawalFinalization.ts",
       });
     }
   };

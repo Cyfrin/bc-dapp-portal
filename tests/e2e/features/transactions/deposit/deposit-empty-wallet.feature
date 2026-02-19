@@ -7,7 +7,7 @@ Feature: Deposit
 
   @id1294 @emptyWallet @mainnet
   Scenario: Deposit - Receive - [Transaction] insufficient funds 0 balance
-    Given I go to page "/transaction/zksync/era/deposit/?network=era-mainnet"
+    Given I go to page "/transaction/battlechain/era/deposit/?network=era-mainnet"
     When I click by "text" with "Your account" value
     When I choose "ETH" as token and insert "0" as amount
     When Element with "text" " Insufficient " should be "visible"

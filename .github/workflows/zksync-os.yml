@@ -1,4 +1,4 @@
-name: Deploy ZKsync OS
+name: Deploy Battle Chain OS
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    name: Build and Deploy ZKsync OS
+    name: Build and Deploy Battle Chain OS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,11 +36,11 @@ jobs:
         run: |
           npm run generate
 
-      - name: Deploy to ZKsync OS Site
+      - name: Deploy to Battle Chain OS Site
         uses: matter-labs/action-hosting-deploy@main
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_ZKSYNC_DAPP_WALLET_V2 }}"
-          projectId: zksync-dapp-wallet-v2
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_BATTLECHAIN_DAPP_WALLET_V2 }}"
+          projectId: battlechain-dapp-wallet-v2
           channelId: live
-          target: zksync-os
+          target: battlechain-os

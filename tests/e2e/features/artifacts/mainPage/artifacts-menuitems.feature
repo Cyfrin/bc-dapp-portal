@@ -35,20 +35,20 @@ Feature: Artifacts - UI
     #Given I click by "testId" with "network-switcher" value
     Given I click by "partial class" with "network-switch" value
     Then Message "Change network" should be visible
-    Then Element with "text" "ZKsync Era∎" should be "visible"
+    Then Element with "text" "Battle Chain∎" should be "visible"
     Then Element with "text" " Preferred network " should be "visible"
-    Then Element with "text" "ZKsync Era Mainnet" should be "visible"
-    Then Element with "text" "ZKsync Era Testnet" should be "visible"
-    Then Element with "text" "ZKsync Lite" should be "visible"
-    Then Element with "text" "ZKsync Lite Mainnet" should be "visible"
-    Then Element with "text" "ZKsync Lite Goerli" should be "visible"
+    Then Element with "text" "Battle Chain Mainnet" should be "visible"
+    Then Element with "text" "Battle Chain Testnet" should be "visible"
+    Then Element with "text" "Battle Chain Lite" should be "visible"
+    Then Element with "text" "Battle Chain Lite Mainnet" should be "visible"
+    Then Element with "text" "Battle Chain Lite Goerli" should be "visible"
 
   @id1409:I
   Scenario: Check artifacts on the View on Explorer menu for Mainnet
     Given I go to page '/?network=era-mainnet'
     Given I click by "partial class" with "main-account-button" value
     Given I click by "text" with " View on explorer " value
-    Then Element with "text" "ZKsync Era Mainnet" should be "visible"
+    Then Element with "text" "Battle Chain Mainnet" should be "visible"
     Then Element with "text" "Ethereum Mainnet" should be "visible"
     Then Element with "text" "View on explorer" should be "visible"
     Then Element with "testId" "close-button" should be "visible"
@@ -65,7 +65,7 @@ Feature: Artifacts - UI
     Given I go to page '/?network=era-goerli'
     Given I click by "partial class" with "main-account-button" value
     Given I click by "text" with " View on explorer " value
-    Then Element with "text" "ZKsync Era Testnet" should be "visible"
+    Then Element with "text" "Battle Chain Testnet" should be "visible"
     Then Element with "text" "Ethereum Goerli Testnet" should be "visible"
     Then Element with "text" "View on explorer" should be "visible"
     Then Element with "testId" "close-button" should be "visible"
@@ -82,15 +82,15 @@ Feature: Artifacts - UI
     Given I go to page '/?network=lite-mainnet'
     Given I click by "partial class" with "main-account-button" value
     Given I click by "text" with " View on explorer " value
-    Then Element with "text" "ZKsync Lite Mainnet" should be "visible"
+    Then Element with "text" "Battle Chain Lite Mainnet" should be "visible"
     Then Element with "text" "Ethereum Mainnet" should be "visible"
     Then Element with "text" "View on explorer" should be "visible"
     Then Element with "testId" "close-button" should be "visible"
     Then Element with "testId" "close-button" should be "clickable"
     Then Element with "text" "Selected network" should be "visible"
     Then Element with "text" "Other networks" should be "visible"
-    Then Element with "src" "/img/zksync-lite.svg" should be "visible"
-    Then Element with "src" "/img/zksync-lite.svg" should be "clickable"
+    Then Element with "src" "/img/battlechain-lite.svg" should be "visible"
+    Then Element with "src" "/img/battlechain-lite.svg" should be "clickable"
     Then Element with "src" "/img/ethereum.svg" should be "visible"
     Then Element with "src" "/img/ethereum.svg" should be "clickable"
 
@@ -99,14 +99,14 @@ Feature: Artifacts - UI
     Given I go to page '/?network=lite-goerli'
     Given I click by "partial class" with "main-account-button" value
     Given I click by "text" with " View on explorer " value
-    Then Element with "text" "ZKsync Lite Goerli" should be "visible"
+    Then Element with "text" "Battle Chain Lite Goerli" should be "visible"
     Then Element with "text" "Ethereum Goerli Testnet" should be "visible"
     Then Element with "text" "View on explorer" should be "visible"
     Then Element with "testId" "close-button" should be "visible"
     Then Element with "testId" "close-button" should be "clickable"
     Then Element with "text" "Selected network" should be "visible"
     Then Element with "text" "Other networks" should be "visible"
-    Then Element with "src" "/img/zksync-lite.svg" should be "visible"
-    Then Element with "src" "/img/zksync-lite.svg" should be "clickable"
+    Then Element with "src" "/img/battlechain-lite.svg" should be "visible"
+    Then Element with "src" "/img/battlechain-lite.svg" should be "clickable"
     Then Element with "src" "/img/ethereum.svg" should be "visible"
     Then Element with "src" "/img/ethereum.svg" should be "clickable"

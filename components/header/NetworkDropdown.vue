@@ -64,7 +64,7 @@ import { CheckIcon } from "@heroicons/vue/24/outline";
 
 import { chainList } from "@/data/networks";
 
-import type { ZkSyncNetwork } from "@/data/networks";
+import type { BattleChainNetwork } from "@/data/networks";
 
 const mainnetList = computed(() => chainList.filter((e) => e.displaySettings && !e.displaySettings.isTestnet));
 const testnetList = computed(() => chainList.filter((e) => e.displaySettings && e.displaySettings.isTestnet));
@@ -73,9 +73,9 @@ const route = useRoute();
 
 const { selectedNetwork } = storeToRefs(useNetworkStore());
 
-const isNetworkSelected = (network: ZkSyncNetwork) => selectedNetwork.value.key === network.key;
+const isNetworkSelected = (network: BattleChainNetwork) => selectedNetwork.value.key === network.key;
 
-const buttonClicked = (network: ZkSyncNetwork) => {
+const buttonClicked = (network: BattleChainNetwork) => {
   if (isNetworkSelected(network)) {
     return;
   }

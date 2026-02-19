@@ -7,7 +7,7 @@ Feature: Artifacts - UI
 
   @id1646:I @tokens @testnet
   Scenario: Check artifacts on tokens dropdown on Transfer page (Testnet)
-    Given I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x47BCD42B8545c23031E9918c3D823Be4100D4e87"
+    Given I go to page "/transaction/battlechain/era/send?network=era-goerli&address=0x47BCD42B8545c23031E9918c3D823Be4100D4e87"
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "Choose token" should be "visible"
     Then Element with "placeholder" "Symbol or address" should be "visible"
@@ -16,7 +16,7 @@ Feature: Artifacts - UI
 
   @id1646:II @tokens @testnet
   Scenario Outline: Check artifacts on tokens dropdown on Transfer page (Testnet)
-    Given I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x47BCD42B8545c23031E9918c3D823Be4100D4e87"
+    Given I go to page "/transaction/battlechain/era/send?network=era-goerli&address=0x47BCD42B8545c23031E9918c3D823Be4100D4e87"
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "<TokenName>" should be "visible"
     Then Element with "partial src" "<img>" should be "visible"
@@ -33,7 +33,7 @@ Feature: Artifacts - UI
 
   @id1645 @tokens @mainnet
   Scenario: Check artifacts on tokens dropdown on Transfer page (Mainnet)
-    Given I go to page "/transaction/zksync/era/send?network=era-mainnet&address=0x47BCD42B8545c23031E9918c3D823Be4100D4e87"
+    Given I go to page "/transaction/battlechain/era/send?network=era-mainnet&address=0x47BCD42B8545c23031E9918c3D823Be4100D4e87"
     Then Element with "testId" "token-dropDown" should be "clickable"
     Then I click by "testId" with "token-dropDown" value
     Then Element with "text" "Choose token" should be "visible"
@@ -151,9 +151,9 @@ Feature: Artifacts - UI
   @id1537 @id1404
   Scenario: Check artifacts on Transaction submitted pop up/Transaction completed pop up (Transfer)
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
+    When I go to page "/transaction/battlechain/era/send?network=era-goerli&address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
     When I choose "ETH" as token and insert "0.0000000001" as amount
-    When I "confirm" transaction after clicking "Send to ZKsync Era Testnet" button
+    When I "confirm" transaction after clicking "Send to Battle Chain Testnet" button
     #Transaction submitted pop up - id1537
     Then Message "Transaction submitted" should be visible
     Then Submitted transaction animation should be visible
@@ -180,7 +180,7 @@ Feature: Artifacts - UI
   @id1364 @id1343  @transfer
   Scenario: Check artifacts on the Send to page - Transfer
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
+    When I go to page "/transaction/battlechain/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
     Then Element with "text" "Send to" should be "visible"
     Then Element with "text" "0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" should be "visible"
     Then Element with "testId" "token-dropDown" should be "visible"
@@ -204,13 +204,13 @@ Feature: Artifacts - UI
   @id1566 @Transfer
   Scenario: Check artifacts on the Confirm transaction modal - Transfer
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
+    When I go to page "/transaction/battlechain/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
     When I choose "ETH" as token and insert "0.0001" as amount
     When I confirm the network switching
     Then Element with "text" " Continue " should be "clickable"
     When I click by text " Continue "
     Then Element with "text" "Confirm transaction" should be "visible"
-    Then Element with "text" "Your ZKsync Era Testnet account" should be "visible"
+    Then Element with "text" "Your Battle Chain Testnet account" should be "visible"
     Then Element with "partial class" "address-card-avatar" should be "visible"
     Then Modal card element with the "//*[text()='0x2CF4...75d']" xpath should be "visible"
     Then Modal card element with the "//*[@alt='ETH token icon']" xpath should be "visible"
@@ -229,12 +229,12 @@ Feature: Artifacts - UI
     Then Modal card element with the "//*[contains(@class, '-my-0.5')]//button[contains(., 'of')]" xpath should be "visible"
     Then Modal card element with the "//*[contains(@class, '-my-0.5')]//*[contains(@src, 'eth.svg')]" xpath should be "visible"
     Then Modal card element with the "//*[contains(@class, '-my-0.5')]//button[contains(., 'ETH')]" xpath should be "visible"
-    Then Element with "text" "Send to ZKsync Era Testnet" should be "visible"
-    Then Element with "text" "Send to ZKsync Era Testnet" should be "clickable"
+    Then Element with "text" "Send to Battle Chain Testnet" should be "visible"
+    Then Element with "text" "Send to Battle Chain Testnet" should be "clickable"
 
   @id1286 @transfer
   Scenario: Check max button functionality
-    When I go to page "/transaction/zksync/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d&network=era-goerli"
+    When I go to page "/transaction/battlechain/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d&network=era-goerli"
     Then I confirm the network switching
       #Max button is displayed
     Then Element with "partial text" "Max" should be "visible"
@@ -251,22 +251,22 @@ Feature: Artifacts - UI
 
   @id1538 @transfer
   Scenario: Check Transaction submitted window redirection links
-    When I go to page "/transaction/zksync/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
+    When I go to page "/transaction/battlechain/era/send/?address=0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d"
     # Fill all the required fields for tx and to see Submitted window
     Then I choose "ETH" as token and insert "0.00000001" as amount
-    When I "confirm" transaction after clicking "Send to ZKsync Era Testnet" button
+    When I "confirm" transaction after clicking "Send to Battle Chain Testnet" button
     #Links check
-    Then Element with "href" "https://goerli.explorer.zksync.io/address/0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" should be "clickable"
-    Then I click by "href" with "https://goerli.explorer.zksync.io/address/0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" value
-    Then New page has "goerli.explorer.zksync.io/address/0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" partial address
+    Then Element with "href" "https://goerli.explorer.battlechain.com/address/0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" should be "clickable"
+    Then I click by "href" with "https://goerli.explorer.battlechain.com/address/0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" value
+    Then New page has "goerli.explorer.battlechain.com/address/0x2CF4F78917A16C9584AeB5d4c5bD2713d724C75d" partial address
     # Check Block Explorer link
-    Then Element with "partial href" "https://goerli.explorer.zksync.io/tx/" should be "clickable"
-    Then I click by "partial href" with "https://goerli.explorer.zksync.io/tx/" value
-    Then New page has "https://goerli.explorer.zksync.io/tx/" partial address
+    Then Element with "partial href" "https://goerli.explorer.battlechain.com/tx/" should be "clickable"
+    Then I click by "partial href" with "https://goerli.explorer.battlechain.com/tx/" value
+    Then New page has "https://goerli.explorer.battlechain.com/tx/" partial address
     # Check Make another transaction
-    Then Element with "partial href" "/transaction/zksync/era" should be "clickable"
-    Then I click by "partial href" with "/transaction/zksync/era" value
-    Then New page has "/transaction/zksync/era" partial address
+    Then Element with "partial href" "/transaction/battlechain/era" should be "clickable"
+    Then I click by "partial href" with "/transaction/battlechain/era" value
+    Then New page has "/transaction/battlechain/era" partial address
     # Check Go to Assets page
     Then Element with "href" "/" should be "clickable"
     Then I click by "href" with "/" value

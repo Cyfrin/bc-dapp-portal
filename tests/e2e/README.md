@@ -41,7 +41,7 @@ npx cucumber-js --tags @deposit
 ## Variables
 
 process.env.TARGET_ENV:
-  set up the target URL environment for the test run. Default value is stage https://staging-portal.zksync.dev/
+  set up the target URL environment for the test run. Default value is stage https://staging-portal.battlechain.com/
 process.env.METAMASK_VERSION
   set up the version of using MetaMask Chrome Extension for reaching appropriate path "tests/e2e/src/support/extension/metamask-chrome-"+process.env.METAMASK_VERSION
 

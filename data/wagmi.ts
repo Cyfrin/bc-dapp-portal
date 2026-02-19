@@ -4,28 +4,28 @@ import { type Chain, zksyncSepoliaTestnet } from "@wagmi/core/chains";
 import { defaultWagmiConfig } from "@web3modal/wagmi";
 import { chainConfig, zksync } from "viem/zksync";
 
-import { chainList, defaultNetwork, type ZkSyncNetwork } from "@/data/networks";
+import { chainList, defaultNetwork, type BattleChainNetwork } from "@/data/networks";
 import { getPrividiumTransport } from "@/data/prividium";
 
 const portalRuntimeConfig = usePortalRuntimeConfig();
 
 const metadata = {
-  name: "ZKsync Portal",
-  description: "ZKsync Portal - view balances, transfer and bridge tokens",
-  url: "https://portal.zksync.io",
-  icons: ["https://portal.zksync.io/icon.png"],
+  name: "Battle Chain Portal",
+  description: "Battle Chain Portal - view balances, transfer and bridge tokens",
+  url: "https://portal.battlechain.com",
+  icons: ["https://portal.battlechain.com/icon.png"],
 };
 
 if (!portalRuntimeConfig.walletConnectProjectId) {
   throw new Error("WALLET_CONNECT_PROJECT_ID is not set. Please set it in .env file");
 }
 
-const useExistingEraChain = (network: ZkSyncNetwork) => {
+const useExistingEraChain = (network: BattleChainNetwork) => {
   const existingNetworks = [zksync, zksyncSepoliaTestnet];
   return existingNetworks.find((existingNetwork) => existingNetwork.id === network.id);
 };
 
-const formatZkSyncChain = (network: ZkSyncNetwork) => {
+const formatBattleChainChain = (network: BattleChainNetwork) => {
   return {
     id: network.id,
     name: network.name,
@@ -66,15 +66,19 @@ const identifyNetworkByQueryParam = () => {
 };
 
 const getAllChains = () => {
-  type ChainData = { config: ZkSyncNetwork; chain: Chain; isL1: boolean };
+  type ChainData = { config: BattleChainNetwork; chain: Chain; isL1: boolean };
   const chains: ChainData[] = [];
-  const addUniqueChain = (config: ZkSyncNetwork, chain: Chain, isL1: boolean) => {
+  const addUniqueChain = (config: BattleChainNetwork, chain: Chain, isL1: boolean) => {
     if (isL1 || !chains.some((existingChain) => existingChain.config.key === config.key)) {
       chains.push({ config, chain, isL1 });
     }
   };
   for (const config of chainList) {
-    addUniqueChain(config, (!config.isPrividium && useExistingEraChain(config)) || formatZkSyncChain(config), false);
+    addUniqueChain(
+      config,
+      (!config.isPrividium && useExistingEraChain(config)) || formatBattleChainChain(config),
+      false
+    );
     if (config.l1Network) {
       addUniqueChain(config, config.l1Network, true);
     }
@@ -99,7 +103,7 @@ const getAllChains = () => {
     return [
       {
         config: hackyCurrentNetwork,
-        chain: formatZkSyncChain(hackyCurrentNetwork),
+        chain: formatBattleChainChain(hackyCurrentNetwork),
         isL1: false,
       },
       ...uniqueChains.filter((e) => e.chain.id !== hackyCurrentNetwork.id),
@@ -110,7 +114,7 @@ const getAllChains = () => {
 };
 
 // Creates a fallback transport for a particular chain.
-const chainTransports = (config: ZkSyncNetwork, chain: Chain, isL1: boolean) => {
+const chainTransports = (config: BattleChainNetwork, chain: Chain, isL1: boolean) => {
   if (!isL1 && config.isPrividium) {
     const prividiumTransport = getPrividiumTransport(chain.id);
     if (!prividiumTransport) {

@@ -22,7 +22,7 @@ Feature: Deposit
     
   @id1427 
   Scenario: Where to add funds - Receive - [WF] Check for Mistakes
-    Given I go to page "/transaction/zksync/era/deposit/"
+    Given I go to page "/transaction/battlechain/era/deposit/"
     Then Element with "testId" "your-account" should be "visible"
     When I fill the input field contains "placeholder" type "Address or ENS or contact name" value with "0x8f0f44583aQ6908f7f933cd6f0aae382ac3fd8f6" text
     Then Element with "text" "Please enter a valid Ethereum address" should be "visible"  
@@ -39,7 +39,7 @@ Feature: Deposit
 
   @id1331 
   Scenario: Deposit - Send - [WF] Check Fee value
-    Given I go to page "/transaction/zksync/era/deposit/"
+    Given I go to page "/transaction/battlechain/era/deposit/"
     When I click by "text" with "Your account" value
     When I choose "ETH" as token and insert "1" as amount
     Then Element with "testId" "fee-amount" should be "visible"

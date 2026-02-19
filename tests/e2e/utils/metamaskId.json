@@ -1,10 +1,10 @@
 {
   "zksyncGoerliNetwork": {
-    "networkName": "ZKsync Era Testnet",
-    "newRpcUrl": "https://testnet.era.zksync.dev",
+    "networkName": "Battle Chain Testnet",
+    "newRpcUrl": "https://testnet.era.battlechain.com",
     "chainId": "280",
     "currencySymbol": "ETH",
-    "blockExplorerUrl": "https://goerli.explorer.zksync.io"
+    "blockExplorerUrl": "https://goerli.explorer.battlechain.com"
   },
   "goerliNetwork": {
     "networkName": "Goerli test network",

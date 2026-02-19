@@ -118,5 +118,19 @@ export default defineNuxtConfig({
       sentryENV: process.env.SENTRY_ENV,
     },
   },
+
   compatibilityDate: "2025-03-24",
+
+  nitro: {
+    routeRules: {
+      // Allow CORS for all API routes (adjust the path as needed)
+      "/**": {
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Use '*' to allow any origin
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
+    },
+  },
 });

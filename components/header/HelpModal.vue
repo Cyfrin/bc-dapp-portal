@@ -1,11 +1,11 @@
 <template>
   <CommonModal title="Help">
     <div class="-mx-block-padding-1/2">
-      <!--DestinationItem
+      <DestinationItem
         label="Discord"
         description="Get support, follow announcements and connect with community"
         as="a"
-        href="https://join.battlechain.com/"
+        href="https://discord.gg/cyfrin"
         target="_blank"
         :icon="ArrowTopRightOnSquareIcon"
         variant="light"
@@ -15,7 +15,7 @@
             <IconsDiscord class="h-6 w-6" />
           </div>
         </template>
-      </DestinationItem-->
+      </DestinationItem>
       <!--DestinationItem
         label="FAQ"
         description="Find tutorials and answers to the most common questions"

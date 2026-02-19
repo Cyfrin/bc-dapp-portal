@@ -55,12 +55,12 @@
           <CommonButtonBack size="sm" @click="openedTab = 'main'" />
           <span class="text-lg">Help</span>
         </div>
-        <!--CommonCardWithLineButtons class="mt-block-padding-1/2">
+        <CommonCardWithLineButtons class="mt-block-padding-1/2">
           <DestinationItem
             label="Discord"
             description="Get support, follow announcements and connect with community"
             as="a"
-            href="https://join.battlechain.com/"
+            href="https://discord.gg/cyfrin"
             target="_blank"
             :icon="ArrowTopRightOnSquareIcon"
             size="sm"
@@ -71,7 +71,7 @@
               </div>
             </template>
           </DestinationItem>
-        </CommonCardWithLineButtons-->
+        </CommonCardWithLineButtons>
         <!--CommonCardWithLineButtons class="mt-block-padding-1/2">
           <DestinationItem
             label="FAQ"

@@ -8,7 +8,7 @@
       >
         <XMarkIcon aria-hidden="true" class="h-6 w-6" />
       </button>
-      <p class="text-left xs:text-center">Explore the wonders of Battle Chain ecosystem</p>
+      <p class="text-left xs:text-center">Explore the wonders of BattleChain ecosystem</p>
       <AnimationsEcosystemLogotypes />
       <CommonButton
         variant="primary"

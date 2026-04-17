@@ -28,7 +28,7 @@ export type TransactionInfo = {
 export const ESTIMATED_DEPOSIT_DELAY = 15 * 1000; // 15 seconds
 export const WITHDRAWAL_DELAY = 5 * 60 * 60 * 1000; // 5 hours
 
-// @zksyncos Battle Chain does not include getTransactionDetails so using executeTxHash as an
+// @zksyncos BattleChain does not include getTransactionDetails so using executeTxHash as an
 // indicator of finalization readiness is not available. Instead (a bit hacky), we first check
 // tx receipt on L2 for success, query zks_getL1L2LogProofs to ensure tx is included in the batch
 // and then make an simulation attempt to `finalizeDeposit` to see if we hit `LocalRootIsZero()`

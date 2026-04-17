@@ -33,7 +33,7 @@
       </DestinationItem-->
       <DestinationItem
         label="Official Documentation"
-        description="Developer resources and technical Battle Chain documentation"
+        description="Developer resources and technical BattleChain documentation"
         as="a"
         href="https://docs.battlechain.com"
         target="_blank"

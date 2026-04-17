@@ -13,7 +13,7 @@ import type { Token } from "~/types";
 const devEnv = process.env.NODE_ENV === "development" || process.env.ONRAMP_STAGING === "true";
 
 createOnRampConfig({
-  integrator: "Battle Chain Portal",
+  integrator: "BattleChain Portal",
   apiUrl: devEnv
     ? "https://easy-onramp-api-staging.battlechain.com/api"
     : "https://easy-onramp-api.battlechain.com/api",

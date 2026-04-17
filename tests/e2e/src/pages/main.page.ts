@@ -273,10 +273,10 @@ export class MainPage extends BasePage {
     await this.click(this.networkSwitcher);
 
     if (
-      networkName === "Battle Chain Mainnet" ||
-      networkName === "Battle Chain Testnet" ||
-      networkName === "Battle Chain Lite Mainnet" ||
-      networkName === "Battle Chain Lite Goerli"
+      networkName === "BattleChain Mainnet" ||
+      networkName === "BattleChain Testnet" ||
+      networkName === "BattleChain Lite Mainnet" ||
+      networkName === "BattleChain Lite Goerli"
     ) {
       result = `//*[text()='${networkName}']`;
     } else {

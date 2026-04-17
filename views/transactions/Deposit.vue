@@ -52,6 +52,7 @@
           :approve-required="!enoughAllowance && (!tokenCustomBridge || !tokenCustomBridge.bridgingDisabled)"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
           class="mb-block-padding-1/2 sm:mb-block-gap"
+          @custom-token="addCustomToken"
         >
           <template #dropdown>
             <CommonButtonDropdown
@@ -369,7 +370,7 @@ import { isAddress } from "ethers";
 
 import EthereumTransactionFooter from "@/components/transaction/EthereumTransactionFooter.vue";
 import useFee from "@/composables/battlechain/deposit/useFee";
-import useTransaction from "@/composables/battlechain/deposit/useTransaction";
+import useTransaction, { ensureTokenRegistered } from "@/composables/battlechain/deposit/useTransaction";
 import useAllowance from "@/composables/transaction/useAllowance";
 import { useSentryLogger } from "@/composables/useSentryLogger";
 // import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
@@ -414,13 +415,23 @@ const fromNetworkSelected = (networkKey?: string) => {
 const step = ref<"form" | "wallet-warning" | "confirm" | "submitted">("form");
 const destination = computed(() => destinations.value.era);
 
+const importedTokens = ref<Token[]>([]);
+const addCustomToken = (token: Token) => {
+  if (!importedTokens.value.some((t) => t.address.toLowerCase() === token.address.toLowerCase())) {
+    importedTokens.value.push(token);
+  }
+};
 const availableTokens = computed<Token[]>(() => {
-  if (balance.value) return balance.value;
-  return getTokensWithCustomBridgeTokens(
-    Object.values(l1Tokens.value ?? []),
-    AddressChainType.L1,
-    bcNetwork.value.l1Network?.id
-  );
+  const base = balance.value
+    ? balance.value
+    : getTokensWithCustomBridgeTokens(
+        Object.values(l1Tokens.value ?? []),
+        AddressChainType.L1,
+        bcNetwork.value.l1Network?.id
+      );
+  const existing = new Set(base.map((t) => t.address.toLowerCase()));
+  const newTokens = importedTokens.value.filter((t) => !existing.has(t.address.toLowerCase()));
+  return [...base, ...newTokens];
 });
 const availableBalances = computed<TokenAmount[]>(() => {
   return balance.value ?? [];
@@ -615,11 +626,28 @@ const transaction = computed<
 });
 
 const feeLoading = computed(() => feeInProgress.value || (!fee.value && balanceInProgress.value));
+const registeredTokens = new Set<string>();
+const tryRegisterToken = async (tokenAddress: string) => {
+  if (registeredTokens.has(tokenAddress.toLowerCase())) return;
+  try {
+    const provider = await providerStore.requestProvider();
+    const bridgehubAddress = (await provider.getBridgehubContractAddress()) as Address;
+    await ensureTokenRegistered(tokenAddress as Address, bridgehubAddress);
+    registeredTokens.add(tokenAddress.toLowerCase());
+  } catch {
+    // Registration failed — deposit will still attempt and show its own error if needed
+  }
+};
 const estimate = async () => {
   if (!transaction.value?.from.address || !transaction.value?.to.address || !selectedToken.value) {
     return;
   }
-  await estimateFee(transaction.value.to.address, selectedToken.value.address);
+  const tokenAddr = selectedToken.value.address;
+  // Register token in the L1 NativeTokenVault in parallel with fee estimation (non-blocking for ETH)
+  if (!selectedToken.value.isETH && tokenAddr !== baseToken.value?.l1Address) {
+    tryRegisterToken(tokenAddr);
+  }
+  await estimateFee(transaction.value.to.address, tokenAddr);
 };
 watch(
   [() => selectedToken.value?.address, () => transaction.value?.from.address, feeTokenBalance],
@@ -696,11 +724,7 @@ const disableWalletWarning = () => {
 /* Transaction signing and submitting */
 const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { previousTransactionAddress } = storeToRefs(usePreferencesStore());
-const {
-  status: transactionStatus,
-  error: transactionError,
-  commitTransaction,
-} = useTransaction(bcWalletStore.getL1Signer);
+const { status: transactionStatus, error: transactionError, commitTransaction } = useTransaction();
 // const { recentlyBridged, ecosystemBannerVisible } = useEcosystemBanner();
 const { saveTransaction, waitForCompletion } = useBattleChainTransactionStatusStore();
 
@@ -719,7 +743,6 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address as Address,
       tokenAddress: transaction.value!.token.address as Address,
       amount: transaction.value!.token.amount,
-      bridgeAddress: transaction.value!.token.l1BridgeAddress as Address | undefined,
     },
     feeValues.value!
   );

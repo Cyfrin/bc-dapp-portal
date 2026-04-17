@@ -10,8 +10,8 @@ import { getPrividiumTransport } from "@/data/prividium";
 const portalRuntimeConfig = usePortalRuntimeConfig();
 
 const metadata = {
-  name: "Battle Chain Portal",
-  description: "Battle Chain Portal - view balances, transfer and bridge tokens",
+  name: "BattleChain Portal",
+  description: "BattleChain Portal - view balances, transfer and bridge tokens",
   url: "https://portal.battlechain.com",
   icons: ["https://portal.battlechain.com/icon.png"],
 };

@@ -19,7 +19,7 @@ export class LoginPage extends BasePage {
   }
 
   get mainTitle() {
-    return "//h1[text()='Battle Chain Portal']";
+    return "//h1[text()='BattleChain Portal']";
   }
 
   async connectMetamask() {

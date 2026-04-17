@@ -1,99 +1,126 @@
-import { createEthersClient, createEthersSdk } from "@dutterbutter/zksync-sdk/ethers";
-import { readContract, writeContract } from "@wagmi/core";
-import { type BigNumberish } from "ethers";
-import { zeroAddress, type Address, type Hash } from "viem";
-import { L1Signer, utils } from "zksync-ethers";
+import { readContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
+import { AbiCoder, type BigNumberish } from "ethers";
+import { concat, encodeAbiParameters, keccak256, type Address, type Hash } from "viem";
 
 import { useSentryLogger } from "@/composables/useSentryLogger";
-import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
 import { wagmiConfig } from "@/data/wagmi";
 
 import type { DepositFeeValues } from "@/composables/battlechain/deposit/useFee";
 
-export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
+const L2_NATIVE_TOKEN_VAULT_ADDRESS = "0x0000000000000000000000000000000000010004" as Address;
+
+const BRIDGEHUB_ABI = [
+  { type: "function", name: "sharedBridge", inputs: [], outputs: [{ type: "address" }], stateMutability: "view" },
+  {
+    type: "function",
+    name: "requestL2TransactionTwoBridges",
+    inputs: [
+      {
+        name: "_request",
+        type: "tuple",
+        components: [
+          { name: "chainId", type: "uint256" },
+          { name: "mintValue", type: "uint256" },
+          { name: "l2Value", type: "uint256" },
+          { name: "l2GasLimit", type: "uint256" },
+          { name: "l2GasPerPubdataByteLimit", type: "uint256" },
+          { name: "refundRecipient", type: "address" },
+          { name: "secondBridgeAddress", type: "address" },
+          { name: "secondBridgeValue", type: "uint256" },
+          { name: "secondBridgeCalldata", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [{ type: "bytes32" }],
+    stateMutability: "payable",
+  },
+] as const;
+
+const L1_ASSET_ROUTER_ABI = [
+  { type: "function", name: "nativeTokenVault", inputs: [], outputs: [{ type: "address" }], stateMutability: "view" },
+] as const;
+
+const L1_NTV_ABI = [
+  {
+    type: "function",
+    name: "assetId",
+    inputs: [{ name: "tokenAddress", type: "address" }],
+    outputs: [{ name: "assetId", type: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "ensureTokenIsRegistered",
+    inputs: [{ name: "_nativeToken", type: "address" }],
+    outputs: [{ name: "tokenAssetId", type: "bytes32" }],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+const ZERO_BYTES32 = "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`;
+
+export async function ensureTokenRegistered(tokenAddress: Address, bridgehubAddress: Address) {
+  const assetRouter = await readContract(wagmiConfig, {
+    address: bridgehubAddress,
+    abi: BRIDGEHUB_ABI,
+    functionName: "sharedBridge",
+  });
+  const ntv = await readContract(wagmiConfig, {
+    address: assetRouter as Address,
+    abi: L1_ASSET_ROUTER_ABI,
+    functionName: "nativeTokenVault",
+  });
+  const currentAssetId = await readContract(wagmiConfig, {
+    address: ntv as Address,
+    abi: L1_NTV_ABI,
+    functionName: "assetId",
+    args: [tokenAddress],
+  });
+  if (currentAssetId === ZERO_BYTES32) {
+    const hash = await writeContract(wagmiConfig, {
+      address: ntv as Address,
+      abi: L1_NTV_ABI,
+      functionName: "ensureTokenIsRegistered",
+      args: [tokenAddress],
+    });
+    await waitForTransactionReceipt(wagmiConfig, { hash });
+  }
+}
+
+function buildV1SecondBridgeCalldata(
+  l1ChainId: bigint,
+  tokenAddress: Address,
+  amount: bigint,
+  receiver: Address
+): `0x${string}` {
+  const coder = AbiCoder.defaultAbiCoder();
+  const assetId = keccak256(
+    encodeAbiParameters(
+      [{ type: "uint256" }, { type: "address" }, { type: "address" }],
+      [l1ChainId, L2_NATIVE_TOKEN_VAULT_ADDRESS, tokenAddress]
+    )
+  );
+  const transferData = coder.encode(["uint256", "address", "address"], [amount, receiver, tokenAddress]);
+  const inner = coder.encode(["bytes32", "bytes"], [assetId, transferData]);
+  return concat(["0x01", inner as `0x${string}`]);
+}
+
+export default () => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "done">("not-started");
   const error = ref<Error | undefined>();
   const ethTransactionHash = ref<Hash | undefined>();
   const bcWalletStore = useBattleChainWalletStore();
+  const providerStore = useBattleChainProviderStore();
+  const { bcNetwork } = storeToRefs(providerStore);
   const { captureException } = useSentryLogger();
 
   const { validateAddress } = useScreening();
-
-  const handleCustomBridgeDeposit = async (
-    transaction: {
-      to: Address;
-      tokenAddress: Address;
-      amount: BigNumberish;
-      bridgeAddress: Address;
-      gasPerPubdata?: bigint;
-      l2GasLimit?: bigint;
-      refundRecipient?: Address;
-    },
-    fee: DepositFeeValues
-  ) => {
-    const l1Signer = await getL1Signer();
-    if (!l1Signer) throw new Error("L1 signer is not available");
-
-    const l2BridgeAddress = await readContract(wagmiConfig, {
-      address: transaction.bridgeAddress as Address,
-      abi: L1_BRIDGE_ABI,
-      functionName: "l2Bridge",
-    });
-    const bridgeData = await utils.getERC20DefaultBridgeData(transaction.tokenAddress, l1Signer.provider);
-
-    const gasPerPubdata = transaction.gasPerPubdata ?? fee.gasPerPubdata;
-    const l2Value = 0n; // L2 value is not used in this context
-    const l2GasLimit = await l1Signer.providerL2.estimateCustomBridgeDepositL2Gas(
-      transaction.bridgeAddress,
-      l2BridgeAddress,
-      transaction.tokenAddress,
-      transaction.amount.toString(),
-      transaction.to,
-      bridgeData,
-      l1Signer.address,
-      gasPerPubdata,
-      l2Value
-    );
-
-    const baseCost = await l1Signer.getBaseCost({
-      gasLimit: l2GasLimit,
-      gasPerPubdataByte: gasPerPubdata,
-    });
-
-    const hash = await writeContract(wagmiConfig, {
-      address: transaction.bridgeAddress as Address,
-      abi: L1_BRIDGE_ABI,
-      functionName: "deposit",
-      args: [
-        transaction.to,
-        transaction.tokenAddress,
-        BigInt(transaction.amount.toString()),
-        transaction.l2GasLimit ?? 400000n,
-        gasPerPubdata,
-        transaction.refundRecipient ?? zeroAddress,
-      ],
-      value: baseCost + fee.maxPriorityFeePerGas,
-    });
-
-    return {
-      from: l1Signer.address,
-      to: transaction.to,
-      hash,
-      // eslint-disable-next-line require-await
-      wait: async () => ({
-        from: l1Signer.address,
-        to: transaction.to,
-        hash,
-      }),
-    };
-  };
 
   const commitTransaction = async (
     transaction: {
       to: Address;
       tokenAddress: Address;
       amount: BigNumberish;
-      bridgeAddress?: Address;
     },
     fee: DepositFeeValues
   ): Promise<{ hash: Hash } | undefined> => {
@@ -101,47 +128,56 @@ export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
       error.value = undefined;
 
       status.value = "processing";
-      const wallet = await getL1Signer();
-      if (!wallet) throw new Error("Wallet is not available");
-
       await bcWalletStore.walletAddressValidate();
       await validateAddress(transaction.to);
 
       status.value = "waiting-for-signature";
 
-      if (transaction.bridgeAddress) {
-        const depositResponse = await handleCustomBridgeDeposit(
-          { ...transaction, bridgeAddress: transaction.bridgeAddress },
-          fee
-        );
-        ethTransactionHash.value = depositResponse.hash;
-        status.value = "done";
-        return { hash: depositResponse.hash };
-      } else {
-        const client = createEthersClient({ l1: wallet.provider, l2: wallet.providerL2, signer: wallet });
-        const sdk = createEthersSdk(client);
+      const provider = await providerStore.requestProvider();
+      const bridgehubAddress = (await provider.getBridgehubContractAddress()) as Address;
+      const assetRouter = (await readContract(wagmiConfig, {
+        address: bridgehubAddress,
+        abi: BRIDGEHUB_ABI,
+        functionName: "sharedBridge",
+      })) as Address;
 
-        const deposit = await sdk.deposits.create({
-          to: transaction.to,
-          token: transaction.tokenAddress,
-          amount: BigInt(transaction.amount?.toString()),
-          l2GasLimit: fee.l2GasLimit,
-          gasPerPubdata: fee.gasPerPubdata,
-          l1TxOverrides: {
-            gasLimit: fee.l1GasLimit,
-            maxFeePerGas: fee.maxFeePerGas,
-            maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
+      const l2ChainId = BigInt((await provider.getNetwork()).chainId);
+      const amount = BigInt(transaction.amount.toString());
+      const receiver = transaction.to;
+
+      const l1ChainId = BigInt(bcNetwork.value.l1Network?.id ?? 0);
+      if (!l1ChainId) throw new Error("L1 network is not available");
+
+      const secondBridgeCalldata = buildV1SecondBridgeCalldata(l1ChainId, transaction.tokenAddress, amount, receiver);
+
+      const baseCost = fee.baseCost ?? 0n;
+      const priorityFee = fee.maxPriorityFeePerGas ?? 0n;
+      const mintValue = baseCost + priorityFee;
+      if (!mintValue) throw new Error("Fee estimation returned zero — cannot submit deposit");
+
+      const hash = await writeContract(wagmiConfig, {
+        address: bridgehubAddress,
+        abi: BRIDGEHUB_ABI,
+        functionName: "requestL2TransactionTwoBridges",
+        args: [
+          {
+            chainId: l2ChainId,
+            mintValue,
+            l2Value: 0n,
+            l2GasLimit: fee.l2GasLimit ?? 2500000n,
+            l2GasPerPubdataByteLimit: fee.gasPerPubdata,
+            refundRecipient: receiver,
+            secondBridgeAddress: assetRouter,
+            secondBridgeValue: 0n,
+            secondBridgeCalldata,
           },
-        });
+        ],
+        value: mintValue,
+      });
 
-        const depositResponse = {
-          hash: deposit.l1TxHash,
-        };
-
-        ethTransactionHash.value = depositResponse.hash as Hash;
-        status.value = "done";
-        return { hash: depositResponse.hash as Hash };
-      }
+      ethTransactionHash.value = hash;
+      status.value = "done";
+      return { hash };
     } catch (err) {
       error.value = formatError(err as Error);
       status.value = "not-started";

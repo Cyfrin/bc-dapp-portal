@@ -111,7 +111,7 @@ const { selectedColorMode, switchColorMode } = useColorMode();
   .logo-container {
     @apply flex w-full flex-shrink items-center gap-2 sm:w-max;
     .logo-icon {
-      @apply max-h-10 w-full max-w-[140px] text-white sm:max-w-[160px];
+      @apply max-h-10 w-full max-w-[140px] text-neutral-900 dark:text-white sm:max-w-[160px];
     }
     .beta-label {
       @apply block rounded-lg bg-neutral-100 p-2 text-xs font-normal uppercase leading-none dark:bg-neutral-900;

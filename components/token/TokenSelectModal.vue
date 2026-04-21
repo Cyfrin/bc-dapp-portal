@@ -74,12 +74,11 @@
           </div>
         </template>
         <p v-else class="mt-block-padding-1/2 text-center">
-          <template v-if="isConnected">
-            No tokens for "{{ search }}" were found on connected account
-            <br />
-            <span class="mt-1.5 inline-block">Make sure you are using correct BattleChain network</span>
-          </template>
-          <template v-else>Connect wallet to see all tokens available for you</template>
+          No results for "{{ search }}"
+          <br />
+          <span class="mt-1.5 inline-block text-sm text-neutral-500">
+            To bridge an unlisted token, paste its L1 contract address above
+          </span>
         </p>
         <slot name="body-bottom" />
       </div>

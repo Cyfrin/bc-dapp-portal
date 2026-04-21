@@ -197,6 +197,18 @@
             <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
           </CommonAlert>
         </transition>
+        <transition v-bind="TransitionAlertScaleInOutTransition">
+          <CommonAlert v-if="exceedsValueCap" class="mt-4" variant="warning" :icon="ExclamationTriangleIcon">
+            <div class="flex flex-col gap-3">
+              <p>
+                This deposit exceeds the $50,000 bridge cap. BattleChain is designed for controlled-risk stress-testing.
+              </p>
+              <CommonCheckboxWithText v-model="valueCapAcknowledged" class="!justify-start text-sm">
+                I understand the risks and want to proceed anyway
+              </CommonCheckboxWithText>
+            </div>
+          </CommonAlert>
+        </transition>
         <CommonErrorBlock v-if="allowanceRequestError" class="mt-2" @try-again="requestAllowance">
           Checking allowance error: {{ allowanceRequestError.message }}
         </CommonErrorBlock>
@@ -372,6 +384,7 @@ import EthereumTransactionFooter from "@/components/transaction/EthereumTransact
 import useFee from "@/composables/battlechain/deposit/useFee";
 import useTransaction, { ensureTokenRegistered } from "@/composables/battlechain/deposit/useTransaction";
 import useAllowance from "@/composables/transaction/useAllowance";
+import { useCoinGeckoPrice } from "@/composables/useCoinGeckoPrice";
 import { useSentryLogger } from "@/composables/useSentryLogger";
 // import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
@@ -597,6 +610,27 @@ const totalComputeAmount = computed(() => {
 });
 const enoughBalanceForTransaction = computed(() => !amountError.value);
 
+const DEPOSIT_VALUE_CAP_USD = 50_000;
+const { getTokenPrice } = useCoinGeckoPrice();
+const tokenUsdPrice = ref<number | undefined>();
+const valueCapAcknowledged = ref(false);
+watch(
+  () => selectedToken.value?.address,
+  async (address) => {
+    tokenUsdPrice.value = undefined;
+    valueCapAcknowledged.value = false;
+    if (!address) return;
+    tokenUsdPrice.value = await getTokenPrice(address);
+  },
+  { immediate: true }
+);
+const depositUsdValue = computed(() => {
+  const price = tokenUsdPrice.value ?? selectedToken.value?.price;
+  if (!price || !totalComputeAmount.value) return 0;
+  return formatRawTokenPrice(totalComputeAmount.value, selectedToken.value?.decimals ?? 18, price);
+});
+const exceedsValueCap = computed(() => depositUsdValue.value > DEPOSIT_VALUE_CAP_USD);
+
 const transaction = computed<
   | {
       token: TokenAmount;
@@ -643,8 +677,9 @@ const estimate = async () => {
     return;
   }
   const tokenAddr = selectedToken.value.address;
-  // Register token in the L1 NativeTokenVault in parallel with fee estimation (non-blocking for ETH)
-  if (!selectedToken.value.isETH && tokenAddr !== baseToken.value?.l1Address) {
+  // Register imported (non-well-known) tokens in the L1 NativeTokenVault
+  const isImportedToken = importedTokens.value.some((t) => t.address.toLowerCase() === tokenAddr.toLowerCase());
+  if (isImportedToken) {
     tryRegisterToken(tokenAddr);
   }
   await estimateFee(transaction.value.to.address, tokenAddr);
@@ -690,6 +725,7 @@ const nativeTokenBridgingOnly = computed(() => {
 });
 
 const continueButtonDisabled = computed(() => {
+  if (exceedsValueCap.value && !valueCapAcknowledged.value) return true;
   if (
     !transaction.value ||
     !enoughBalanceToCoverFee.value ||

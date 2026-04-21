@@ -1,9 +1,9 @@
-import { $fetch } from "ofetch";
 import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { wellKnownTokens } from "@/data/wellKnownTokens";
 
-import type { Api, Token } from "@/types";
+import type { Token } from "@/types";
 
 export const useBattleChainTokensStore = defineStore("battleChainTokens", () => {
   const providerStore = useBattleChainProviderStore();
@@ -21,58 +21,32 @@ export const useBattleChainTokensStore = defineStore("battleChainTokens", () => 
     const provider = await providerStore.requestProvider();
     const ethL2TokenAddress = await provider.l2TokenAddress(utils.ETH_ADDRESS);
 
-    let baseToken: Token | undefined;
+    // Resolve base token (ETH or custom base token)
+    const l1VoidSigner = await walletStore.getL1VoidSigner(true);
+    const baseTokenAddress = await l1VoidSigner.getBaseToken();
+    const baseToken: Token =
+      baseTokenAddress === L2_BASE_TOKEN_ADDRESS
+        ? {
+            address: L2_BASE_TOKEN_ADDRESS,
+            l1Address: utils.ETH_ADDRESS,
+            symbol: "ETH",
+            name: "Ether",
+            decimals: 18,
+            iconUrl: "/img/eth.svg",
+            isETH: true,
+          }
+        : {
+            address: L2_BASE_TOKEN_ADDRESS,
+            l1Address: baseTokenAddress,
+            symbol: "BASETOKEN",
+            name: "Base Token",
+            decimals: 18,
+            iconUrl: "/img/base.svg",
+            isETH: false,
+          };
+
     let ethToken: Token | undefined;
-    let explorerTokens: Token[] = [];
-    let configTokens: Token[] = [];
-
-    if (bcNetwork.value.blockExplorerApi) {
-      const responses: Api.Response.Collection<Api.Response.Token>[] = await Promise.all([
-        $fetch(`${bcNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=1`),
-        $fetch(`${bcNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=2`),
-        $fetch(`${bcNetwork.value.blockExplorerApi}/tokens?minLiquidity=0&limit=100&page=3`),
-      ]);
-      explorerTokens = responses.map((response) => response.items.map(mapApiToken)).flat();
-      baseToken = explorerTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
-      ethToken = explorerTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
-    }
-
-    if (bcNetwork.value.getTokens && (!baseToken || !ethToken)) {
-      configTokens = await bcNetwork.value.getTokens();
-      if (!baseToken) {
-        baseToken = configTokens.find((token) => token.address.toUpperCase() === L2_BASE_TOKEN_ADDRESS.toUpperCase());
-      }
-      if (!ethToken) {
-        ethToken = configTokens.find((token) => token.address.toUpperCase() === ethL2TokenAddress.toUpperCase());
-      }
-    }
-
-    // TODO: @zksyncos add helper for retrieving base token address for chainID
-    if (!baseToken) {
-      const l1VoidSigner = await walletStore.getL1VoidSigner(true);
-      const baseTokenAddress = await l1VoidSigner.getBaseToken();
-      baseToken =
-        baseTokenAddress === L2_BASE_TOKEN_ADDRESS
-          ? {
-              address: L2_BASE_TOKEN_ADDRESS,
-              l1Address: utils.ETH_ADDRESS,
-              symbol: "ETH",
-              name: "Ether",
-              decimals: 18,
-              iconUrl: "/img/eth.svg",
-              isETH: true,
-            }
-          : {
-              address: L2_BASE_TOKEN_ADDRESS,
-              l1Address: baseTokenAddress,
-              symbol: "BASETOKEN",
-              name: "Base Token",
-              decimals: 18,
-              iconUrl: "/img/base.svg",
-              isETH: false,
-            };
-    }
-    if (!ethToken && !baseToken.isETH) {
+    if (!baseToken.isETH) {
       ethToken = {
         address: ethL2TokenAddress,
         l1Address: utils.ETH_ADDRESS,
@@ -83,11 +57,16 @@ export const useBattleChainTokensStore = defineStore("battleChainTokens", () => 
       };
     }
 
-    const tokensListToUse = explorerTokens.length ? explorerTokens : configTokens;
-    const nonBaseOrEthExplorerTokens = tokensListToUse.filter(
-      (token) => token.address !== L2_BASE_TOKEN_ADDRESS && token.address !== ethL2TokenAddress
-    );
-    const finalTokensList = [baseToken, ethToken, ...nonBaseOrEthExplorerTokens].filter(Boolean) as Token[];
+    // Use well-known tokens list for the current L1 network
+    const l1ChainId = bcNetwork.value.l1Network?.id;
+    const knownTokens: Token[] =
+      (l1ChainId ? wellKnownTokens[l1ChainId] : [])?.map((t) => ({
+        ...t,
+        l1Address: t.address,
+        address: t.address,
+      })) ?? [];
+
+    const finalTokensList = [baseToken, ethToken, ...knownTokens].filter(Boolean) as Token[];
     return finalTokensList;
   });
 

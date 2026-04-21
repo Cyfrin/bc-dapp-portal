@@ -61,7 +61,8 @@ import SelectTokenModal from "@/views/on-ramp/SelectTokenModal.vue";
 
 const { selectedToken } = storeToRefs(useOnRampStore());
 
-const chainIcon = ref("/img/era.svg");
+const { selectedColorMode } = useColorMode();
+const chainIcon = computed(() => (selectedColorMode.value === "dark" ? "/img/Logo-light.svg" : "/img/Logo-dark.svg"));
 
 const { step } = storeToRefs(useOnRampStore());
 const fiatAmount = defineModel<string>({ required: true });

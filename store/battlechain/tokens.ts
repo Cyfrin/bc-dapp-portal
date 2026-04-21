@@ -22,10 +22,15 @@ export const useBattleChainTokensStore = defineStore("battleChainTokens", () => 
     const ethL2TokenAddress = await provider.l2TokenAddress(utils.ETH_ADDRESS);
 
     // Resolve base token (ETH or custom base token)
-    const l1VoidSigner = await walletStore.getL1VoidSigner(true);
-    const baseTokenAddress = await l1VoidSigner.getBaseToken();
+    let baseTokenAddress: string | undefined;
+    try {
+      const l1VoidSigner = await walletStore.getL1VoidSigner(true);
+      baseTokenAddress = await l1VoidSigner.getBaseToken();
+    } catch {
+      // L1 signer unavailable — fall back to ETH as base token
+    }
     const baseToken: Token =
-      baseTokenAddress === L2_BASE_TOKEN_ADDRESS
+      !baseTokenAddress || baseTokenAddress === L2_BASE_TOKEN_ADDRESS
         ? {
             address: L2_BASE_TOKEN_ADDRESS,
             l1Address: utils.ETH_ADDRESS,

@@ -173,21 +173,6 @@ const depositMethods = computed(() => {
     });
   }
 
-  // const isMainnet = bcNetwork.value.l1Network?.id === mainnet.id;
-  const isTestnet = bcNetwork.value.l1Network && bcNetwork.value.l1Network.id !== mainnet.id;
-  if (isTestnet && bcNetwork.value.displaySettings?.showPartnerLinks) {
-    methods.push({
-      props: {
-        iconUrl: "/img/faucet.svg",
-        label: "Faucet",
-        description: "Receive testnet funds",
-        as: "a",
-        href: "https://docs.battlechain.com/build/tooling/network-faucets.html",
-        target: "_blank",
-        icon: ArrowTopRightOnSquareIcon,
-      },
-    });
-  }
   methods.push({
     props: {
       label: "View your address",

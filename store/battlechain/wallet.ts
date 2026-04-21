@@ -169,6 +169,10 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
     // Filter out the tokens in `balancesResult` that are not in `tokens`
     const otherTokens = balancesResult.value
       .filter((token) => !knownTokenAddresses.has(token.address))
+      .map((token) => ({
+        ...token,
+        iconUrl: token.iconUrl || getWellKnownIconUrl(token.l1Address) || undefined,
+      }))
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
     const sortedTokens = [...knownTokens, ...otherTokens].sort((a, b) => {

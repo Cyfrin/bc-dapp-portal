@@ -14,7 +14,7 @@
         </CommonQrCodeStyled>
         <div class="flex flex-col items-center text-center sm:items-start sm:text-left">
           <div class="flex items-center gap-1 text-neutral-400">
-            <IconsEra class="h-6 w-6" />
+            <img :src="destination.iconUrl" :alt="destination.label" class="h-6 w-6" />
             <span>Your {{ bcNetwork.name }} address</span>
           </div>
           <div class="break-all sm:text-lg">{{ address }}</div>

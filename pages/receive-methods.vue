@@ -25,17 +25,6 @@
           :to="{ name: 'bridge', query: $route.query }"
         />
       </CommonCardWithLineButtons>
-      <CommonCardWithLineButtons v-if="isTestnet">
-        <DestinationItem
-          label="Faucet"
-          description="Receive testnet funds"
-          icon-url="/img/faucet.svg"
-          as="a"
-          href="https://docs.battlechain.com/build/tooling/network-faucets.html"
-          target="_blank"
-          :icon="ArrowTopRightOnSquareIcon"
-        />
-      </CommonCardWithLineButtons>
       <!--CommonCardWithLineButtons v-if="isMainnet && bcNetwork.displaySettings?.showPartnerLinks">
         <DestinationItem
           label="Top-up with cash"

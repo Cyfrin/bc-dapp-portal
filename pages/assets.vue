@@ -124,12 +124,10 @@
 import {
   ArrowDownLeftIcon,
   // ArrowsUpDownIcon,
-  ArrowTopRightOnSquareIcon,
   ArrowUpRightIcon,
   // BanknotesIcon,
   QrCodeIcon,
 } from "@heroicons/vue/24/outline";
-import { mainnet } from "viem/chains";
 
 // import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 

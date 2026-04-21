@@ -64,16 +64,12 @@
 <script lang="ts" setup>
 import {
   // ArrowsUpDownIcon,
-  ArrowTopRightOnSquareIcon,
   // BanknotesIcon,
   QrCodeIcon,
 } from "@heroicons/vue/24/outline";
-import { mainnet } from "viem/chains";
 
 const { destinations } = storeToRefs(useDestinationsStore());
 const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
-// const isMainnet = computed(() => bcNetwork.value.l1Network?.id === mainnet.id);
-const isTestnet = computed(() => bcNetwork.value.l1Network && bcNetwork.value.l1Network.id !== mainnet.id);
 </script>
 
 <style lang="scss" scoped></style>

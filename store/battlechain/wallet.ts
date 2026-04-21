@@ -20,9 +20,7 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
     if (!l1Address) return undefined;
     const l1ChainId = bcNetwork.value.l1Network?.id;
     if (!l1ChainId) return undefined;
-    const knownToken = wellKnownTokens[l1ChainId]?.find(
-      (t) => t.address.toLowerCase() === l1Address.toLowerCase()
-    );
+    const knownToken = wellKnownTokens[l1ChainId]?.find((t) => t.address.toLowerCase() === l1Address.toLowerCase());
     return knownToken?.iconUrl;
   };
 

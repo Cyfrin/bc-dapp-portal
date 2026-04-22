@@ -2,16 +2,14 @@
   <CommonModal v-model:opened="modalDisplayed" :initial-focus="checkbox" :closable="false">
     <DialogTitle as="div" class="modal-title">Welcome to BattleChain Bridge</DialogTitle>
     <div class="modal-body">
-      <p>
-        BattleChain is a pre-mainnet, post-testnet blockchain for stress-testing smart contracts with real funds.
-      </p>
+      <p>BattleChain is a pre-mainnet, post-testnet blockchain for stress-testing smart contracts with real funds.</p>
       <p>
         Protocols deployed here may enter Attack Mode, where whitehats can legally exploit vulnerabilities for bounties.
         Bridge only funds you are comfortable putting at controlled risk.
       </p>
       <p>
-        This bridge is in beta and subject to further development and changes. Use of any features available through this
-        website is done so entirely at your own risk.
+        This bridge is in beta and subject to further development and changes. Use of any features available through
+        this website is done so entirely at your own risk.
       </p>
     </div>
 

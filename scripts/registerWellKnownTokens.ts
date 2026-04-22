@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * One-time script to pre-register well-known tokens in the L1 NativeTokenVault.
  *

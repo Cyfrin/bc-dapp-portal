@@ -6,8 +6,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    outputs:
-      dappUrl: ${{ steps.deploy.outputs.details_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -40,12 +38,3 @@ jobs:
       - name: Build
         run: |
           npm run generate
-
-      - name: Deploy
-        uses: matter-labs/action-hosting-deploy@main
-        id: deploy
-        with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING_BATTLECHAIN_DAPP_WALLET_V2 }}"
-          projectId: staging-battlechain-dapp-wallet-v2
-          expires: 7d

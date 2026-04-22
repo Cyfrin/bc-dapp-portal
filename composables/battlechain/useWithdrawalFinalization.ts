@@ -56,7 +56,14 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110",
       provider
     );
-    return await wallet.getFinalizeWithdrawalParams(transactionInfo.value.transactionHash);
+    const params = await wallet.getFinalizeWithdrawalParams(transactionInfo.value.transactionHash);
+    // ZKSync OS returns batchNumber instead of l1BatchNumber in the log proof RPC response.
+    // The SDK doesn't map this field, so we fall back to a raw RPC call if l1BatchNumber is missing.
+    if (params.l1BatchNumber == null) {
+      const logProof = await provider.getLogProof(transactionInfo.value.transactionHash, 0);
+      params.l1BatchNumber = (logProof as any)?.batchNumber ?? params.l1BatchNumber;
+    }
+    return params;
   };
 
   const getTransactionParams = async () => {

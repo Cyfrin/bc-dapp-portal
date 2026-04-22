@@ -151,7 +151,6 @@ const emit = defineEmits<{
 }>();
 
 const onboardStore = useOnboardStore();
-const { isConnected } = storeToRefs(onboardStore);
 
 const search = ref("");
 const hasBalances = computed(() => props.balances.length > 0);

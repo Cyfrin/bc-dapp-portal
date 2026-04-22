@@ -66,7 +66,7 @@ export const wellKnownTokens: Record<number, WellKnownToken[]> = {
       mainnetAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
     },
     {
-      address: "0x92f3B59a79bFf5dc60c0d59eA13a44D082B2bdFC",
+      address: "0x52eeA312378ef46140EBE67dE8a143BA2304FD7C",
       symbol: "WBTC",
       name: "Wrapped BTC",
       decimals: 8,

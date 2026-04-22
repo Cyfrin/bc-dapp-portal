@@ -73,7 +73,7 @@ export default (getSigner: () => Promise<Signer | undefined>, getProvider: () =>
 
       status.value = "processing";
       const signer = await getSigner();
-      if (!signer) throw new Error("Battle Chain Signer is not available");
+      if (!signer) throw new Error("BattleChain Signer is not available");
 
       accountAddress = (await signer.getAddress()) as Address;
 

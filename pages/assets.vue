@@ -86,7 +86,7 @@
 
       <template v-if="noBalances">
         <TypographyCategoryLabel>
-          To start using Battle Chain ecosystem, deposit tokens in any convenient way
+          To start using BattleChain ecosystem, deposit tokens in any convenient way
         </TypographyCategoryLabel>
 
         <div class="flex flex-col gap-block-gap">
@@ -104,7 +104,7 @@
         </div>
       </template>
       <template v-else>
-        <TypographyCategoryLabel>Deposit more tokens to Battle Chain</TypographyCategoryLabel>
+        <TypographyCategoryLabel>Deposit more tokens to BattleChain</TypographyCategoryLabel>
 
         <CommonCardWithLineButtons>
           <DestinationItem v-for="(item, index) in depositMethods" :key="index" v-bind="item.props">
@@ -124,12 +124,10 @@
 import {
   ArrowDownLeftIcon,
   // ArrowsUpDownIcon,
-  ArrowTopRightOnSquareIcon,
   ArrowUpRightIcon,
   // BanknotesIcon,
   QrCodeIcon,
 } from "@heroicons/vue/24/outline";
-import { mainnet } from "viem/chains";
 
 // import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 
@@ -173,21 +171,6 @@ const depositMethods = computed(() => {
     });
   }
 
-  // const isMainnet = bcNetwork.value.l1Network?.id === mainnet.id;
-  const isTestnet = bcNetwork.value.l1Network && bcNetwork.value.l1Network.id !== mainnet.id;
-  if (isTestnet && bcNetwork.value.displaySettings?.showPartnerLinks) {
-    methods.push({
-      props: {
-        iconUrl: "/img/faucet.svg",
-        label: "Faucet",
-        description: "Receive testnet funds",
-        as: "a",
-        href: "https://docs.battlechain.com/build/tooling/network-faucets.html",
-        target: "_blank",
-        icon: ArrowTopRightOnSquareIcon,
-      },
-    });
-  }
   methods.push({
     props: {
       label: "View your address",

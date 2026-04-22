@@ -56,7 +56,7 @@ export type BattleChainNetwork = {
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
 };
 
-// See the official documentation on running a local Battle Chain node: https://era.battlechain.com/docs/tools/testing/
+// See the official documentation on running a local BattleChain node: https://era.battlechain.com/docs/tools/testing/
 // Also see the guide in the README.md file in the root of the repository.
 
 // In-memory node default config. Docs: https://era.battlechain.com/docs/tools/testing/era-test-node.html
@@ -89,7 +89,7 @@ const publicChains: BattleChainNetwork[] = [
   {
     id: 626,
     key: "mainnet",
-    name: "Battle Chain",
+    name: "BattleChain",
     rpcUrl: "https://mainnet.battlechain.com",
     blockExplorerUrl: "https://explorer.mainnet.battlechain.com",
     blockExplorerApi: "https://block-explorer-api.mainnet.battlechain.com",

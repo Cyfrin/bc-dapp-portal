@@ -50,7 +50,8 @@ import { ChevronLeftIcon, ChevronRightIcon, ArrowRightIcon } from "@heroicons/vu
 
 import type { Route } from "zksync-easy-onramp";
 
-const chainIcon = "/img/era.svg";
+const { selectedColorMode } = useColorMode();
+const chainIcon = computed(() => (selectedColorMode.value === "dark" ? "/img/Logo-light.svg" : "/img/Logo-dark.svg"));
 
 const { routes } = useRoutesStore();
 

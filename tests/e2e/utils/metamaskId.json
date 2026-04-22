@@ -1,6 +1,6 @@
 {
   "zksyncGoerliNetwork": {
-    "networkName": "Battle Chain Testnet",
+    "networkName": "BattleChain Testnet",
     "newRpcUrl": "https://testnet.era.battlechain.com",
     "chainId": "280",
     "currencySymbol": "ETH",

@@ -52,6 +52,7 @@
           :approve-required="!enoughAllowance && (!tokenCustomBridge || !tokenCustomBridge.bridgingDisabled)"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
           class="mb-block-padding-1/2 sm:mb-block-gap"
+          @custom-token="addCustomToken"
         >
           <template #dropdown>
             <CommonButtonDropdown
@@ -194,6 +195,18 @@
               <span class="font-medium">{{ destinations.ethereum.label }}</span> to cover the fee
             </p>
             <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
+          </CommonAlert>
+        </transition>
+        <transition v-bind="TransitionAlertScaleInOutTransition">
+          <CommonAlert v-if="exceedsValueCap" class="mt-4" variant="warning" :icon="ExclamationTriangleIcon">
+            <div class="flex flex-col gap-3">
+              <p>
+                This deposit exceeds the $50,000 bridge cap. BattleChain is designed for controlled-risk stress-testing.
+              </p>
+              <CommonCheckboxWithText v-model="valueCapAcknowledged" class="!justify-start text-sm">
+                I understand the risks and want to proceed anyway
+              </CommonCheckboxWithText>
+            </div>
           </CommonAlert>
         </transition>
         <CommonErrorBlock v-if="allowanceRequestError" class="mt-2" @try-again="requestAllowance">
@@ -369,8 +382,9 @@ import { isAddress } from "ethers";
 
 import EthereumTransactionFooter from "@/components/transaction/EthereumTransactionFooter.vue";
 import useFee from "@/composables/battlechain/deposit/useFee";
-import useTransaction from "@/composables/battlechain/deposit/useTransaction";
+import useTransaction, { ensureTokenRegistered } from "@/composables/battlechain/deposit/useTransaction";
 import useAllowance from "@/composables/transaction/useAllowance";
+import { useCoinGeckoPrice } from "@/composables/useCoinGeckoPrice";
 import { useSentryLogger } from "@/composables/useSentryLogger";
 // import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
@@ -414,13 +428,23 @@ const fromNetworkSelected = (networkKey?: string) => {
 const step = ref<"form" | "wallet-warning" | "confirm" | "submitted">("form");
 const destination = computed(() => destinations.value.era);
 
+const importedTokens = ref<Token[]>([]);
+const addCustomToken = (token: Token) => {
+  if (!importedTokens.value.some((t) => t.address.toLowerCase() === token.address.toLowerCase())) {
+    importedTokens.value.push(token);
+  }
+};
 const availableTokens = computed<Token[]>(() => {
-  if (balance.value) return balance.value;
-  return getTokensWithCustomBridgeTokens(
-    Object.values(l1Tokens.value ?? []),
-    AddressChainType.L1,
-    bcNetwork.value.l1Network?.id
-  );
+  const base = balance.value
+    ? balance.value
+    : getTokensWithCustomBridgeTokens(
+        Object.values(l1Tokens.value ?? []),
+        AddressChainType.L1,
+        bcNetwork.value.l1Network?.id
+      );
+  const existing = new Set(base.map((t) => t.address.toLowerCase()));
+  const newTokens = importedTokens.value.filter((t) => !existing.has(t.address.toLowerCase()));
+  return [...base, ...newTokens];
 });
 const availableBalances = computed<TokenAmount[]>(() => {
   return balance.value ?? [];
@@ -586,6 +610,27 @@ const totalComputeAmount = computed(() => {
 });
 const enoughBalanceForTransaction = computed(() => !amountError.value);
 
+const DEPOSIT_VALUE_CAP_USD = 50_000;
+const { getTokenPrice } = useCoinGeckoPrice();
+const tokenUsdPrice = ref<number | undefined>();
+const valueCapAcknowledged = ref(false);
+watch(
+  () => selectedToken.value?.address,
+  async (address) => {
+    tokenUsdPrice.value = undefined;
+    valueCapAcknowledged.value = false;
+    if (!address) return;
+    tokenUsdPrice.value = await getTokenPrice(address);
+  },
+  { immediate: true }
+);
+const depositUsdValue = computed(() => {
+  const price = tokenUsdPrice.value ?? selectedToken.value?.price;
+  if (!price || !totalComputeAmount.value) return 0;
+  return formatRawTokenPrice(totalComputeAmount.value, selectedToken.value?.decimals ?? 18, price);
+});
+const exceedsValueCap = computed(() => depositUsdValue.value > DEPOSIT_VALUE_CAP_USD);
+
 const transaction = computed<
   | {
       token: TokenAmount;
@@ -615,11 +660,29 @@ const transaction = computed<
 });
 
 const feeLoading = computed(() => feeInProgress.value || (!fee.value && balanceInProgress.value));
+const registeredTokens = new Set<string>();
+const tryRegisterToken = async (tokenAddress: string) => {
+  if (registeredTokens.has(tokenAddress.toLowerCase())) return;
+  try {
+    const provider = await providerStore.requestProvider();
+    const bridgehubAddress = (await provider.getBridgehubContractAddress()) as Address;
+    await ensureTokenRegistered(tokenAddress as Address, bridgehubAddress);
+    registeredTokens.add(tokenAddress.toLowerCase());
+  } catch {
+    // Registration failed — deposit will still attempt and show its own error if needed
+  }
+};
 const estimate = async () => {
   if (!transaction.value?.from.address || !transaction.value?.to.address || !selectedToken.value) {
     return;
   }
-  await estimateFee(transaction.value.to.address, selectedToken.value.address);
+  const tokenAddr = selectedToken.value.address;
+  // Register imported (non-well-known) tokens in the L1 NativeTokenVault
+  const isImportedToken = importedTokens.value.some((t) => t.address.toLowerCase() === tokenAddr.toLowerCase());
+  if (isImportedToken) {
+    tryRegisterToken(tokenAddr);
+  }
+  await estimateFee(transaction.value.to.address, tokenAddr);
 };
 watch(
   [() => selectedToken.value?.address, () => transaction.value?.from.address, feeTokenBalance],
@@ -662,6 +725,7 @@ const nativeTokenBridgingOnly = computed(() => {
 });
 
 const continueButtonDisabled = computed(() => {
+  if (exceedsValueCap.value && !valueCapAcknowledged.value) return true;
   if (
     !transaction.value ||
     !enoughBalanceToCoverFee.value ||
@@ -696,11 +760,7 @@ const disableWalletWarning = () => {
 /* Transaction signing and submitting */
 const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { previousTransactionAddress } = storeToRefs(usePreferencesStore());
-const {
-  status: transactionStatus,
-  error: transactionError,
-  commitTransaction,
-} = useTransaction(bcWalletStore.getL1Signer);
+const { status: transactionStatus, error: transactionError, commitTransaction } = useTransaction();
 // const { recentlyBridged, ecosystemBannerVisible } = useEcosystemBanner();
 const { saveTransaction, waitForCompletion } = useBattleChainTransactionStatusStore();
 
@@ -719,7 +779,6 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address as Address,
       tokenAddress: transaction.value!.token.address as Address,
       amount: transaction.value!.token.amount,
-      bridgeAddress: transaction.value!.token.l1BridgeAddress as Address | undefined,
     },
     feeValues.value!
   );

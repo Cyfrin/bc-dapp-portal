@@ -1,6 +1,6 @@
 import { useStorage } from "@vueuse/core";
 import { fallback, http } from "@wagmi/core";
-import { type Chain, zksyncSepoliaTestnet } from "@wagmi/core/chains";
+import { mainnet, type Chain, zksyncSepoliaTestnet } from "@wagmi/core/chains";
 import { defaultWagmiConfig } from "@web3modal/wagmi";
 import { chainConfig, zksync } from "viem/zksync";
 
@@ -10,8 +10,8 @@ import { getPrividiumTransport } from "@/data/prividium";
 const portalRuntimeConfig = usePortalRuntimeConfig();
 
 const metadata = {
-  name: "Battle Chain Portal",
-  description: "Battle Chain Portal - view balances, transfer and bridge tokens",
+  name: "BattleChain Portal",
+  description: "BattleChain Portal - view balances, transfer and bridge tokens",
   url: "https://portal.battlechain.com",
   icons: ["https://portal.battlechain.com/icon.png"],
 };
@@ -98,6 +98,19 @@ const getAllChains = () => {
     We need to make sure we don't include e.g. prividium on zk sepolia but just zk sepolia
     or vice versa when prividium chain is selected
   */
+  // Ensure Ethereum mainnet is always available for ENS resolution
+  if (!uniqueChains.some((e) => e.chain.id === mainnet.id)) {
+    const mainnetWithRpc = {
+      ...mainnet,
+      rpcUrls: {
+        default: {
+          http: ["https://ethereum-rpc.publicnode.com", "https://cloudflare-eth.com"],
+        },
+      },
+    };
+    uniqueChains.push({ config: chainList[0], chain: mainnetWithRpc, isL1: true });
+  }
+
   const hackyCurrentNetwork = identifyNetworkByQueryParam();
   if (hackyCurrentNetwork) {
     return [

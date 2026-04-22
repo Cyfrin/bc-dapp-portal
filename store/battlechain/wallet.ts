@@ -2,6 +2,7 @@ import { $fetch } from "ofetch";
 import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { wellKnownTokens } from "@/data/wellKnownTokens";
 import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
 
 import type { Api, TokenAmount } from "@/types";
@@ -12,9 +13,16 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
   const providerStore = useBattleChainProviderStore();
   const tokensStore = useBattleChainTokensStore();
   const { bcNetwork } = storeToRefs(providerStore);
-  const { tokens } = storeToRefs(tokensStore);
   const { account } = storeToRefs(onboardStore);
   const { validateAddress } = useScreening();
+
+  const getWellKnownIconUrl = (l1Address?: string): string | undefined => {
+    if (!l1Address) return undefined;
+    const l1ChainId = bcNetwork.value.l1Network?.id;
+    if (!l1ChainId) return undefined;
+    const knownToken = wellKnownTokens[l1ChainId]?.find((t) => t.address.toLowerCase() === l1Address.toLowerCase());
+    return knownToken?.iconUrl;
+  };
 
   const { execute: getSigner, reset: resetSigner } = usePromise(async () => {
     const walletNetworkId = account.value.chain?.id;
@@ -71,12 +79,12 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
   const getBalancesFromBlockExplorerApi = async (): Promise<TokenAmount[]> => {
     await Promise.all([requestAccountState({ force: true }), tokensStore.requestTokens()]);
     if (!accountState.value) throw new Error("Account state is not available");
-    if (!tokens.value) throw new Error("Tokens are not available");
-    const baseToken = tokens.value?.[L2_BASE_TOKEN_ADDRESS];
+    if (!tokensStore.tokens) throw new Error("Tokens are not available");
+    const baseToken = tokensStore.tokens?.[L2_BASE_TOKEN_ADDRESS];
     return Object.entries(accountState.value.balances)
-      .filter(([tokenAddress, { token }]) => token || tokens.value?.[tokenAddress])
+      .filter(([tokenAddress, { token }]) => token || tokensStore.tokens?.[tokenAddress])
       .map(([tokenAddress, { balance, token }]) => {
-        const tokenInfo = token ? mapApiToken(token) : tokens.value?.[tokenAddress];
+        const tokenInfo = token ? mapApiToken(token) : tokensStore.tokens?.[tokenAddress];
         return {
           address:
             tokenInfo!.address === "0x000000000000000000000000000000000000800A" &&
@@ -87,7 +95,7 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
           name: tokenInfo!.name || undefined,
           symbol: tokenInfo!.symbol!,
           decimals: tokenInfo!.decimals,
-          iconUrl: tokenInfo!.iconUrl || undefined,
+          iconUrl: tokenInfo!.iconUrl || getWellKnownIconUrl(tokenInfo!.l1Address) || undefined,
           price: tokenInfo?.price || undefined,
           amount: balance,
           l1BridgeAddress: tokenInfo?.l1BridgeAddress,
@@ -97,12 +105,12 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {
     await tokensStore.requestTokens();
-    if (!tokens.value) throw new Error("Tokens are not available");
+    if (!tokensStore.tokens) throw new Error("Tokens are not available");
     if (!account.value.address) throw new Error("Account is not available");
 
     const provider = await providerStore.requestProvider();
     const balances = await Promise.all(
-      Object.entries(tokens.value).map(async ([, token]) => {
+      Object.entries(tokensStore.tokens).map(async ([, token]) => {
         const amount = await provider.getBalance(onboardStore.account.address!, undefined, token.address);
         return {
           ...token,
@@ -144,7 +152,7 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
   const balance = computed<TokenAmount[]>(() => {
     if (!balancesResult.value) return [];
 
-    const knownTokens: TokenAmount[] = Object.entries(tokens.value ?? {})
+    const knownTokens: TokenAmount[] = Object.entries(tokensStore.tokens ?? {})
       .map(([, token]) => {
         const amount = balancesResult.value!.find((e) => e.address === token.address)?.amount ?? "0";
         return { ...token, amount };
@@ -159,6 +167,10 @@ export const useBattleChainWalletStore = defineStore("battleChainWallet", () => 
     // Filter out the tokens in `balancesResult` that are not in `tokens`
     const otherTokens = balancesResult.value
       .filter((token) => !knownTokenAddresses.has(token.address))
+      .map((token) => ({
+        ...token,
+        iconUrl: token.iconUrl || getWellKnownIconUrl(token.l1Address) || undefined,
+      }))
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
     const sortedTokens = [...knownTokens, ...otherTokens].sort((a, b) => {

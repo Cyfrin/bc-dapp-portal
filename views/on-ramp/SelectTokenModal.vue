@@ -73,5 +73,6 @@ const selectedTokenAddress = computed({
     selectedToken.value = tokensList.value.find((token) => token.address === address) ?? null;
   },
 });
-const chainIcon = ref("/img/era.svg");
+const { selectedColorMode } = useColorMode();
+const chainIcon = computed(() => (selectedColorMode.value === "dark" ? "/img/Logo-light.svg" : "/img/Logo-dark.svg"));
 </script>

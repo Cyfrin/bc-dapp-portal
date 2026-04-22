@@ -31,7 +31,8 @@ const redirectURL = route.query.redirect as string;
 
 const { order } = storeToRefs(useOrderProcessingStore());
 
-const chainIcon = ref("/img/era.svg");
+const { selectedColorMode } = useColorMode();
+const chainIcon = computed(() => (selectedColorMode.value === "dark" ? "/img/Logo-light.svg" : "/img/Logo-dark.svg"));
 
 const { selectedToken } = storeToRefs(useOnRampStore());
 

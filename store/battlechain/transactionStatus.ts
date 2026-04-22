@@ -28,7 +28,7 @@ export type TransactionInfo = {
 export const ESTIMATED_DEPOSIT_DELAY = 15 * 1000; // 15 seconds
 export const WITHDRAWAL_DELAY = 5 * 60 * 60 * 1000; // 5 hours
 
-// @zksyncos Battle Chain does not include getTransactionDetails so using executeTxHash as an
+// @zksyncos BattleChain does not include getTransactionDetails so using executeTxHash as an
 // indicator of finalization readiness is not available. Instead (a bit hacky), we first check
 // tx receipt on L2 for success, query zks_getL1L2LogProofs to ensure tx is included in the batch
 // and then make an simulation attempt to `finalizeDeposit` to see if we hit `LocalRootIsZero()`
@@ -172,6 +172,11 @@ export const useBattleChainTransactionStatusStore = defineStore("battleChainTran
         // TODO (zksyncos) Hacky: can be improved upon
         const wallet = new Wallet("0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110", provider);
         const p = await wallet.getFinalizeWithdrawalParams(transaction.transactionHash);
+        // ZKSync OS returns batchNumber instead of l1BatchNumber — fall back to raw RPC
+        if (p.l1BatchNumber == null) {
+          const logProof = await provider.getLogProof(transaction.transactionHash, 0);
+          p.l1BatchNumber = (logProof as any)?.batchNumber ?? p.l1BatchNumber;
+        }
 
         const l1Signer = await useBattleChainWalletStore().getL1VoidSigner(true);
         const bridges = await provider.getDefaultBridgeAddresses();
@@ -244,6 +249,8 @@ export const useBattleChainTransactionStatusStore = defineStore("battleChainTran
     } else if (transaction.type === "transfer") {
       transaction = await getTransferStatus(transaction);
     }
+    // Persist updated status (e.g. withdrawalFinalizationAvailable) to localStorage
+    updateTransactionData(transaction.transactionHash, transaction);
     if (!transaction.info.completed) {
       const timeoutByType: Record<TransactionInfo["type"], number> = {
         deposit: 15_000,

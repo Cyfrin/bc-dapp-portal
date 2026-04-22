@@ -50,13 +50,35 @@
             </CommonLineButtonsGroup>
           </div>
         </template>
+        <template v-else-if="displayedTokens.length">
+          <CommonLineButtonsGroup class="category" :gap="false" :margin-y="false">
+            <TokenLine
+              v-for="item in displayedTokens"
+              :key="item.l2Address ? `${item.address}-${item.l2Address}` : item.address"
+              class="token-line"
+              v-bind="item"
+              @click="selectedToken = item"
+            />
+          </CommonLineButtonsGroup>
+        </template>
+        <template v-else-if="shouldLookupCustomToken">
+          <div v-if="!customToken" class="mt-block-padding-1/2 text-center">
+            <CommonContentLoader :length="20" />
+            <p class="mt-2 text-sm text-gray-400">Looking up token...</p>
+          </div>
+          <div v-else class="mt-block-padding-1/2">
+            <TypographyCategoryLabel size="sm" variant="darker" class="mb-2"> Import token </TypographyCategoryLabel>
+            <CommonLineButtonsGroup :gap="false">
+              <TokenLine v-bind="customToken" class="token-line" @click="selectCustomToken(customToken)" />
+            </CommonLineButtonsGroup>
+          </div>
+        </template>
         <p v-else class="mt-block-padding-1/2 text-center">
-          <template v-if="isConnected">
-            No tokens for "{{ search }}" were found on connected account
-            <br />
-            <span class="mt-1.5 inline-block">Make sure you are using correct Battle Chain network</span>
-          </template>
-          <template v-else>Connect wallet to see all tokens available for you</template>
+          No results for "{{ search }}"
+          <br />
+          <span class="mt-1.5 inline-block text-sm text-neutral-500">
+            To bridge an unlisted token, paste its L1 contract address above
+          </span>
         </p>
         <slot name="body-bottom" />
       </div>
@@ -67,8 +89,30 @@
 <script lang="ts" setup>
 import { Combobox } from "@headlessui/vue";
 import { MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
+import { isAddress } from "ethers";
+
+import { IERC20_ABI } from "@/data/abis/ierc20Abi";
 
 import type { Token, TokenAmount } from "@/types";
+
+const ERC20_METADATA_ABI = [
+  ...IERC20_ABI,
+  { inputs: [], name: "name", outputs: [{ type: "string" }], stateMutability: "view", type: "function" },
+  { inputs: [], name: "symbol", outputs: [{ type: "string" }], stateMutability: "view", type: "function" },
+  { inputs: [], name: "decimals", outputs: [{ type: "uint8" }], stateMutability: "view", type: "function" },
+] as const;
+
+const ERC165_ABI = [
+  {
+    inputs: [{ name: "interfaceId", type: "bytes4" }],
+    name: "supportsInterface",
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+// ERC721 interface ID
+const ERC721_INTERFACE_ID = "0x80ac58cd" as const;
 
 const props = defineProps({
   title: {
@@ -103,9 +147,10 @@ const emit = defineEmits<{
   (eventName: "update:opened", value: boolean): void;
   (eventName: "update:tokenAddress", tokenAddress?: string): void;
   (eventName: "try-again"): void;
+  (eventName: "custom-token", token: Token): void;
 }>();
 
-const { isConnected } = storeToRefs(useOnboardStore());
+const onboardStore = useOnboardStore();
 
 const search = ref("");
 const hasBalances = computed(() => props.balances.length > 0);
@@ -123,6 +168,78 @@ const filterTokens = (tokens: Token[]) => {
 const displayedTokens = computed(() => filterTokens(props.tokens));
 const displayedBalances = computed(() => filterTokens(props.balances) as TokenAmount[]);
 const balanceGroups = groupBalancesByAmount(displayedBalances);
+
+// Custom token lookup when search is an address not in the existing list
+const customToken = ref<Token | undefined>();
+const customTokenFetching = ref(false);
+const customTokenError = ref(false);
+const isSearchAnAddress = computed(() => search.value.length === 42 && isAddress(search.value));
+const isSearchAddressKnown = computed(() => {
+  if (!isSearchAnAddress.value) return false;
+  const addr = search.value.toLowerCase();
+  return (
+    props.tokens.some((t) => t.address.toLowerCase() === addr) ||
+    props.balances.some((t) => t.address.toLowerCase() === addr)
+  );
+});
+const shouldLookupCustomToken = computed(
+  () => isSearchAnAddress.value && !isSearchAddressKnown.value && !customTokenError.value
+);
+
+watch(search, async (value) => {
+  customToken.value = undefined;
+  customTokenFetching.value = false;
+  customTokenError.value = false;
+  if (!isSearchAnAddress.value || isSearchAddressKnown.value) return;
+
+  customTokenFetching.value = true;
+  try {
+    const publicClient = onboardStore.getPublicClient();
+    const address = value as `0x${string}`;
+    const [name, symbol, decimals] = await Promise.all([
+      publicClient.readContract({ address, abi: ERC20_METADATA_ABI, functionName: "name" }),
+      publicClient.readContract({ address, abi: ERC20_METADATA_ABI, functionName: "symbol" }),
+      publicClient.readContract({ address, abi: ERC20_METADATA_ABI, functionName: "decimals" }),
+    ]);
+
+    // Reject ERC721/ERC1155 tokens that also expose name/symbol/decimals
+    try {
+      const isERC721 = await publicClient.readContract({
+        address,
+        abi: ERC165_ABI,
+        functionName: "supportsInterface",
+        args: [ERC721_INTERFACE_ID],
+      });
+      if (isERC721) {
+        customTokenError.value = true;
+        return;
+      }
+    } catch {
+      // No ERC165 support — expected for most ERC20s, safe to continue
+    }
+
+    if (search.value === value) {
+      customToken.value = {
+        address,
+        l1Address: address,
+        name: name as string,
+        symbol: symbol as string,
+        decimals: Number(decimals),
+      };
+    }
+  } catch {
+    customToken.value = undefined;
+    customTokenError.value = true;
+  } finally {
+    customTokenFetching.value = false;
+  }
+});
+
+const selectCustomToken = (token: Token) => {
+  emit("custom-token", token);
+  selectedTokenAddress.value = token.address;
+  closeModal();
+};
 
 const selectedTokenAddress = computed({
   get: () => props.tokenAddress,

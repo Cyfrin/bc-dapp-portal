@@ -26,7 +26,7 @@ export const wellKnownTokens: Record<number, WellKnownToken[]> = {
       mainnetAddress: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     },
     {
-      address: "0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357",
+      address: "0x776b6fc2ed15d6bb5fc32e0c89de68683118c62a",
       symbol: "DAI",
       name: "Dai Stablecoin",
       decimals: 18,

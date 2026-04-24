@@ -9,13 +9,13 @@ Feature: Faucet
     Given A wallet should be "empty"
     When I go to page "/?network=era-mainnet"
     Then Element with "text" "Not enough tokens?" should be "invisible"
-    Then Element with "text" "Use official ZKsync Era faucet" should be "invisible"
+    Then Element with "text" "Use official Battle Chain faucet" should be "invisible"
     Then Element with "text" " Get free test tokens " should be "invisible"
 
   @id1635
   Scenario: Check Out of funds Faucet page
     Given A wallet should be "empty"
-    When I go to page "/transaction/zksync/era/faucet/?network=era-goerli"
+    When I go to page "/transaction/battlechain/era/faucet/?network=era-goerli"
     Then Faucet tokens animation should be visible
     Then Element with "text" "Out of funds" should be "visible"
     Then Element with "text" "out of funds currently" should be "visible"

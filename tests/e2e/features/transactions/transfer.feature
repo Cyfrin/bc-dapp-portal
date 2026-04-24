@@ -7,9 +7,9 @@ Feature: Transfer
   @id1321
   Scenario: Make a transfer in ETH
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x9CC8DC9c4d73fC5647A4eE78A2e8EC49D447AeB8"
+    When I go to page "/transaction/battlechain/era/send?network=era-goerli&address=0x9CC8DC9c4d73fC5647A4eE78A2e8EC49D447AeB8"
     When I choose "ETH" as token and insert "0.0000000001" as amount
-    When I "confirm" transaction after clicking "Send to ZKsync Era Testnet" button
+    When I "confirm" transaction after clicking "Send to Battle Chain Testnet" button
     Then Message "Transaction submitted" should be visible
     Then Message "Transaction completed" should be visible
     Then Element with "text" "Send" should be "visible"
@@ -19,8 +19,8 @@ Feature: Transfer
   @id1276
   Scenario: Reject a transfer transaction
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/send?network=era-goerli&address=0x9CC8DC9c4d73fC5647A4eE78A2e8EC49D447AeB8"
+    When I go to page "/transaction/battlechain/era/send?network=era-goerli&address=0x9CC8DC9c4d73fC5647A4eE78A2e8EC49D447AeB8"
     When I choose "ETH" as token and insert "0.0000000001" as amount
-    When I "reject" transaction after clicking "Send to ZKsync Era Testnet" button
+    When I "reject" transaction after clicking "Send to Battle Chain Testnet" button
     Then Element with "text" "Confirm transaction" should be "visible"
 

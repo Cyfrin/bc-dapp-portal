@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides a high-level description of the flow of events in the release and production pipeline for ZKsync Portal. It outlines the processes for preview, staging, and production deployments, as well as the role of automated and manual steps in ensuring quality and reliability.
+This document provides a high-level description of the flow of events in the release and production pipeline for Battle Chain Portal. It outlines the processes for preview, staging, and production deployments, as well as the role of automated and manual steps in ensuring quality and reliability.
 
 ---
 
@@ -44,7 +44,7 @@ Once changes in staging are validated:
   - This ensures that no changes are deployed to production without explicit approval.
 - The production deployment:
   - Builds and deploys the application to the live environment.
-  - Utilizes the `live` channel in the Firebase project `zksync-dapp-wallet-v2`.
+  - Utilizes the `live` channel in the Firebase project `battlechain-dapp-wallet-v2`.
 
 **Hotfixes**: Urgent fixes bypass the standard pipeline but follow a similar process:
 

@@ -6,13 +6,16 @@ export type TransactionDestination = {
 
 export const useDestinationsStore = defineStore("destinations", () => {
   const { l1Network } = storeToRefs(useNetworkStore());
-  const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+  const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
+  const { selectedColorMode } = useColorMode();
+
+  const bcIconUrl = computed(() => (selectedColorMode.value === "dark" ? "/img/Logo-light.svg" : "/img/Logo-dark.svg"));
 
   const destinations = computed(() => ({
     era: {
       key: "era",
-      label: eraNetwork.value.name,
-      iconUrl: "/img/era.svg",
+      label: bcNetwork.value.name,
+      iconUrl: bcIconUrl.value,
     },
     ethereum: {
       key: "ethereum",

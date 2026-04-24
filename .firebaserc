@@ -1,19 +1,25 @@
 {
   "projects": {
-    "default": "zksync-dapp-wallet-v2"
+    "default": "battlechain-dapp-wallet-v2"
   },
   "targets": {
-    "zksync-dapp-wallet-v2": {
+    "battlechain-dapp-wallet-v2": {
       "hosting": {
         "web": [
-          "zksync-dapp-wallet-v2"
+          "battlechain-dapp-wallet-v2"
+        ],
+        "battlechain-os": [
+          "battlechain-os-dapp-portal"
         ]
       }
     },
-    "staging-zksync-dapp-wallet-v2": {
+    "staging-battlechain-dapp-wallet-v2": {
       "hosting": {
         "web": [
-          "staging-zksync-dapp-wallet-v2"
+          "staging-battlechain-dapp-wallet-v2"
+        ],
+        "battlechain-os": [
+          "staging-battlechain-os-dapp-portal"
         ]
       }
     }

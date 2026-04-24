@@ -1,8 +1,12 @@
 import { useStorage } from "@vueuse/core";
-import { decodeEventLog } from "viem";
+import { decodeEventLog, type Address } from "viem";
+import { Wallet, typechain } from "zksync-ethers";
+import IL1Nullifier from "zksync-ethers/abi/IL1Nullifier.json";
 import IZkSyncHyperchain from "zksync-ethers/abi/IZkSyncHyperchain.json";
 
-import type { FeeEstimationParams } from "@/composables/zksync/useFee";
+import { selectL2ToL1LogIndex, isLocalRootIsZero } from "@/utils/helpers";
+
+import type { FeeEstimationParams } from "@/composables/battlechain/useFee";
 import type { TokenAmount, Hash } from "@/types";
 
 export type TransactionInfo = {
@@ -21,25 +25,32 @@ export type TransactionInfo = {
   };
 };
 
-export const ESTIMATED_DEPOSIT_DELAY = 15 * 60 * 1000; // 15 minutes
-export const WITHDRAWAL_DELAY = 6 * 60 * 60 * 1000; // 6 hours
+export const ESTIMATED_DEPOSIT_DELAY = 15 * 1000; // 15 seconds
+export const WITHDRAWAL_DELAY = 5 * 60 * 60 * 1000; // 5 hours
 
-export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionStatus", () => {
+// @zksyncos BattleChain does not include getTransactionDetails so using executeTxHash as an
+// indicator of finalization readiness is not available. Instead (a bit hacky), we first check
+// tx receipt on L2 for success, query zks_getL1L2LogProofs to ensure tx is included in the batch
+// and then make an simulation attempt to `finalizeDeposit` to see if we hit `LocalRootIsZero()`
+// if so we know its not ready yet. If not we proceed to mark as ready.
+// This approach is not ideal and may need to be refined in the future.
+
+export const useBattleChainTransactionStatusStore = defineStore("battleChainTransactionStatus", () => {
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
+  const providerStore = useBattleChainProviderStore();
   const { account } = storeToRefs(onboardStore);
-  const { eraNetwork } = storeToRefs(providerStore);
+  const { bcNetwork } = storeToRefs(providerStore);
 
   const storageSavedTransactions = useStorage<{ [networkKey: string]: TransactionInfo[] }>(
-    "zksync-bridge-transactions",
+    "battlechain-bridge-transactions",
     {}
   );
   const savedTransactions = computed<TransactionInfo[]>({
     get: () => {
-      return storageSavedTransactions.value[eraNetwork.value.key] || [];
+      return storageSavedTransactions.value[bcNetwork.value.key] || [];
     },
     set: (transactions: TransactionInfo[]) => {
-      storageSavedTransactions.value[eraNetwork.value.key] = transactions;
+      storageSavedTransactions.value[bcNetwork.value.key] = transactions;
     },
   });
   const userTransactions = computed(() =>
@@ -115,33 +126,115 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     }
   };
   const getWithdrawalStatus = async (transaction: TransactionInfo) => {
+    const provider = await providerStore.requestProvider();
+
+    // Fetch L2 tx receipt
+    const receipt = await provider.getTransactionReceipt(transaction.transactionHash);
+    if (!receipt) {
+      return transaction;
+    }
+
+    // If L2 tx failed, mark failed & completed and exit
+    if ((receipt as any).status === 0) {
+      transaction.info.withdrawalFinalizationAvailable = false;
+      transaction.info.failed = true;
+      transaction.info.completed = false;
+      return transaction;
+    }
+
+    // Check if we already decided finalization is available; if not, try to ensure inclusion
     if (!transaction.info.withdrawalFinalizationAvailable) {
-      const provider = await providerStore.requestProvider();
-      const transactionDetails = await provider.getTransactionDetails(transaction.transactionHash);
-      if (transactionDetails.status === "failed") {
-        transaction.info.withdrawalFinalizationAvailable = false;
-        transaction.info.failed = true;
-        transaction.info.completed = true;
+      const l2ToL1Logs = (receipt as any).l2ToL1Logs ?? (receipt as any).l2ToL1LogsRaw ?? [];
+
+      const logIndex = selectL2ToL1LogIndex(l2ToL1Logs);
+      if (logIndex === null) {
+        // No L2→L1 log yet → not provable, so not included in an L1 batch yet
         return transaction;
       }
-      if (transactionDetails.status !== "verified") {
+
+      // Ask provider for a proof; if present, tx is included in an L1 batch (not yet proved/executed)
+      let hasProof = false;
+      try {
+        const proof = await provider.getLogProof(transaction.transactionHash, logIndex);
+        hasProof = !!proof;
+      } catch {
+        hasProof = false;
+      }
+
+      if (!hasProof) {
+        // Not provable yet → wait
         return transaction;
+      }
+
+      try {
+        // Build finalize params for the purpose of ensuring tx is ready for finalization
+        // This replaces the use zks_getTransactionDetails and checking if executeTxHash was present
+        // TODO (zksyncos) Hacky: can be improved upon
+        const wallet = new Wallet("0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110", provider);
+        const p = await wallet.getFinalizeWithdrawalParams(transaction.transactionHash);
+        // ZKSync OS returns batchNumber instead of l1BatchNumber — fall back to raw RPC
+        if (p.l1BatchNumber == null) {
+          const logProof = await provider.getLogProof(transaction.transactionHash, 0);
+          p.l1BatchNumber = (logProof as any)?.batchNumber ?? p.l1BatchNumber;
+        }
+
+        const l1Signer = await useBattleChainWalletStore().getL1VoidSigner(true);
+        const bridges = await provider.getDefaultBridgeAddresses();
+        const l1NullifierAddr = await typechain.IL1AssetRouter__factory.connect(
+          bridges.sharedL1,
+          l1Signer
+        ).L1_NULLIFIER();
+
+        const publicClient = useOnboardStore().getPublicClient();
+        const chainId = BigInt((await provider.getNetwork()).chainId);
+
+        const finalizeDepositParams = {
+          chainId,
+          l2BatchNumber: BigInt(p.l1BatchNumber ?? 0n),
+          l2MessageIndex: BigInt(p.l2MessageIndex),
+          l2Sender: p.sender as Address,
+          l2TxNumberInBatch: Number(p.l2TxNumberInBlock),
+          message: p.message as Hash,
+          merkleProof: p.proof as readonly Hash[],
+        };
+
+        const res = await publicClient.estimateContractGas({
+          address: l1NullifierAddr as Address,
+          abi: IL1Nullifier,
+          functionName: "finalizeDeposit",
+          args: [finalizeDepositParams],
+        });
+        console.log("res", res); // eslint-disable-line no-console
+
+        // If we got here, call is acceptable → finalization is available
+        transaction.info.withdrawalFinalizationAvailable = true;
+      } catch (err) {
+        // This will signal finalization is not yet available
+        if (isLocalRootIsZero(err)) {
+          // Batch not executed yet → keep finalization unavailable
+          transaction.info.withdrawalFinalizationAvailable = false;
+          transaction.info.completed = false;
+          transaction.info.failed = false;
+          return transaction;
+        }
+        // other revert (e.g., already finalized) will be handled below
       }
     }
-    const isFinalized = await useZkSyncWalletStore()
-      .getL1VoidSigner(true)
-      .then((signer) => signer.isWithdrawalFinalized(transaction.transactionHash))
-      .catch(() => false);
-    transaction.info.withdrawalFinalizationAvailable = true;
+
+    // Finalization check on L1
+    const l1signer = await useBattleChainWalletStore().getL1VoidSigner(true);
+    const isFinalized = await l1signer.isWithdrawalFinalized(transaction.transactionHash).catch(() => false);
+
     transaction.info.completed = isFinalized;
+    transaction.info.failed = false;
     return transaction;
   };
   const getTransferStatus = async (transaction: TransactionInfo) => {
     const provider = await providerStore.requestProvider();
     const transactionReceipt = await provider.getTransactionReceipt(transaction.transactionHash);
     if (!transactionReceipt) return transaction;
-    const transactionDetails = await provider.getTransactionDetails(transaction.transactionHash);
-    if (transactionDetails.status === "failed") {
+    // TODO (zksyncos): ensure this is sufficient to check success
+    if (transactionReceipt.status === 0) {
       transaction.info.failed = true;
     }
     transaction.info.completed = true;
@@ -156,6 +249,8 @@ export const useZkSyncTransactionStatusStore = defineStore("zkSyncTransactionSta
     } else if (transaction.type === "transfer") {
       transaction = await getTransferStatus(transaction);
     }
+    // Persist updated status (e.g. withdrawalFinalizationAvailable) to localStorage
+    updateTransactionData(transaction.transactionHash, transaction);
     if (!transaction.info.completed) {
       const timeoutByType: Record<TransactionInfo["type"], number> = {
         deposit: 15_000,

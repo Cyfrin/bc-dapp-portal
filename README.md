@@ -1,28 +1,28 @@
-![ZKsync Portal](public/preview.png)
+![BattleChain Portal](public/preview.png)
 
-# ZKsync Portal 🚀
+# BattleChain Portal 🚀
 
-**ZKsync Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both ZKsync versions - every interaction smooth and efficient.
+**BattleChain Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both BattleChain versions - every interaction smooth and efficient.
 
 ## ✨ Features
 
-- 🖥️ Intuitive interface for managing, sending, and bridging ZKsync Era.
+- 🖥️ Intuitive interface for managing, sending, and bridging BattleChain.
 - 📇 Ability to add contacts for quick and easy access.
-- 🔧 Effortless setup and connection to local ZKsync nodes or ZK Stack Hyperchains.
+- 🔧 Effortless setup and connection to local BattleChain nodes or ZK Stack Hyperchains.
 
 ## 🎉 Try it out!
 
-- 🌐 Dive in now at [portal.zksync.io](https://portal.zksync.io/).
+- 🌐 Dive in now at [portal.battlechain.com](https://portal.battlechain.com/).
 
 ---
 
 ## 🌍 Connecting to local node
 
-Harness the Portal's power to connect to your [local ZKsync Era node](https://docs.zksync.io/zksync-node/quickstart).
+Harness the Portal's power to connect to your [local BattleChain node](https://docs.battlechain.com/battlechain-node/quickstart).
 
 **Prerequisites:** Node.js version 16+, npm version 7+
 
-1. 📚 Follow the [documentation](https://docs.zksync.io/zksync-node/quickstart) for setting up either an **in-memory node** or **dockerized local setup**.
+1. 📚 Follow the [documentation](https://docs.battlechain.com/battlechain-node/quickstart) for setting up either an **in-memory node** or **dockerized local setup**.
 2. 🔄 Clone the Portal repository and set it up:
    ```bash
    git clone https://github.com/matter-labs/dapp-portal.git
@@ -94,6 +94,22 @@ Activate the dev server at http://localhost:3000:
 ```bash
 npm run dev
 ```
+
+### Registering Well-Known Tokens
+
+The bridge UI displays a curated list of well-known ERC20 tokens defined in `data/wellKnownTokens.ts`. These tokens must be registered in the L1 NativeTokenVault before users can bridge them. Run the registration script after updating the token list:
+
+```bash
+PRIVATE_KEY=<deployer_private_key> BRIDGEHUB=<bridgehub_address> npx ts-node scripts/registerWellKnownTokens.ts
+```
+
+Environment variables:
+- `PRIVATE_KEY` — private key of an account with Sepolia ETH for gas
+- `BRIDGEHUB` — Bridgehub contract address (Sepolia: `0xcEa5C0ade89389Dd5FC461F69CCbD812cFb7fbd8`)
+- `RPC_URL` — (optional) L1 RPC endpoint, defaults to Sepolia public RPC
+- `L1_CHAIN_ID` — (optional) defaults to `11155111` (Sepolia)
+
+The script skips tokens that are already registered. Run it again whenever tokens are added to `wellKnownTokens.ts`.
 
 ### 🏭 Production
 

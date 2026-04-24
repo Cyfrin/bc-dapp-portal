@@ -6,6 +6,7 @@
       :loading="loading"
       :tokens="tokens"
       :balances="balances"
+      @custom-token="(token: Token) => emit('custom-token', token)"
     >
       <template v-if="$slots['token-dropdown-bottom']" #body-bottom>
         <slot name="token-dropdown-bottom" />
@@ -145,6 +146,7 @@ const emit = defineEmits<{
   (eventName: "update:error", error?: string): void;
   (eventName: "update:modelValue", amount: string): void;
   (eventName: "update:tokenAddress", tokenAddress?: string): void;
+  (eventName: "custom-token", token: Token): void;
 }>();
 
 const { captureException } = useSentryLogger();
@@ -154,8 +156,11 @@ const selectedTokenAddress = computed({
   set: (value?: string) => emit("update:tokenAddress", value),
 });
 const selectedToken = computed(() => {
-  const tokens = props.balances.length ? props.balances : props.tokens;
-  return tokens.find((e) => e.address === props.tokenAddress);
+  if (props.balances.length) {
+    const fromBalances = props.balances.find((e) => e.address === props.tokenAddress);
+    if (fromBalances) return fromBalances;
+  }
+  return props.tokens.find((e) => e.address === props.tokenAddress);
 });
 const tokenBalance = computed(() => {
   if (!props.balances.length || !selectedToken.value) {

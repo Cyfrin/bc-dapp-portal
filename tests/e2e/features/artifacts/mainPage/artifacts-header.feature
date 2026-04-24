@@ -23,20 +23,20 @@ Feature: Artifacts - UI
   @id1428
   Scenario: Check artifacts on the Receive page
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/receive"
+    When I go to page "/transaction/battlechain/era/receive"
     Then Element with "text" "Receive" should be "visible"
     Then Element with "text" "Official bridge" should be "visible"
     Then Element with "text" "Add funds from Ethereum Goerli Testnet" should be "visible"
-    Then Element with "href" "/transaction/zksync/era/deposit" should be "visible"
-    Then Element with "href" "/transaction/zksync/era/deposit" should be "clickable"
+    Then Element with "href" "/transaction/battlechain/era/deposit" should be "visible"
+    Then Element with "href" "/transaction/battlechain/era/deposit" should be "clickable"
     Then Element with "text" "View address" should be "visible"
     Then Element with "text" "Receive from another account" should be "visible"
-    Then Element with "href" "/transaction/zksync/era/receive-address" should be "visible"
-    Then Element with "href" "/transaction/zksync/era/receive-address" should be "clickable"
+    Then Element with "href" "/transaction/battlechain/era/receive-address" should be "visible"
+    Then Element with "href" "/transaction/battlechain/era/receive-address" should be "clickable"
     Then Element with "text" "Receive test tokens" should be "visible"
     Then Element with "text" "Use official faucet to get test tokens" should be "visible"
-    Then Element with "href" "/transaction/zksync/era/faucet" should be "visible"
-    Then Element with "href" "/transaction/zksync/era/faucet" should be "clickable"
+    Then Element with "href" "/transaction/battlechain/era/faucet" should be "visible"
+    Then Element with "href" "/transaction/battlechain/era/faucet" should be "clickable"
     Then Element with "text" "Top-up with cash" should be "visible"
     Then Element with "text" "Ramp" should be "visible"
     Then Element with "href" "https://ramp.network/buy/" should be "visible"
@@ -48,7 +48,7 @@ Feature: Artifacts - UI
   @id1352
   Scenario: Check artifacts on the Receive Address (QR) page
     Given I am on the Main page
-    When I go to page "/transaction/zksync/era/receive-address"
+    When I go to page "/transaction/battlechain/era/receive-address"
     Then Element with "text" "Receive" should be "visible"
     Then Element with "class" "qr-code-container" should be "visible"
     Then Element with "text" "0x2CF4F7...75d" should be "visible"
@@ -56,12 +56,12 @@ Feature: Artifacts - UI
     Then Element with "text" "Copy" should be "visible"
     Then Element with "text" "Copy" should be "clickable"
     Then Element with "text" " Please transfer funds to this address using " should be "visible"
-    Then Element with "text" "ZKsync Era Testnet" should be "visible"
+    Then Element with "text" "Battle Chain Testnet" should be "visible"
     Then Element with "text" " to successfully receive them " should be "visible"
 
   @id1363 @loginPage
   Scenario: Check artifacts on the Login page
     Given I'm logged out
-    Then Element with "text" "Connect your Ethereum wallet to ZKsync Portal" should be "visible"
+    Then Element with "text" "Connect your Ethereum wallet to Battle Chain Portal" should be "visible"
     Then Element with "testId" "network-switcher" should be "visible"
-    Then Element with "title" "ZKsync Portal GitHub page" should be "visible"
+    Then Element with "title" "Battle Chain Portal GitHub page" should be "visible"

@@ -16,13 +16,25 @@
 </template>
 
 <script lang="ts" setup>
+import { wellKnownTokens } from "@/data/wellKnownTokens";
 import DepositSubmitted from "@/views/transactions/DepositSubmitted.vue";
 import TransferSubmitted from "@/views/transactions/TransferSubmitted.vue";
 import WithdrawalSubmitted from "@/views/transactions/WithdrawalSubmitted.vue";
 
 const route = useRoute();
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 
-const transactionStatusStore = useZkSyncTransactionStatusStore();
+const transactionStatusStore = useBattleChainTransactionStatusStore();
+
+const enrichTokenIcon = (tx: TransactionInfo): TransactionInfo => {
+  if (tx.token.iconUrl) return tx;
+  const l1ChainId = bcNetwork.value.l1Network?.id;
+  const knownToken = l1ChainId
+    ? wellKnownTokens[l1ChainId]?.find((t) => t.address.toLowerCase() === tx.token.l1Address?.toLowerCase())
+    : undefined;
+  if (!knownToken?.iconUrl) return tx;
+  return { ...tx, token: { ...tx.token, iconUrl: knownToken.iconUrl } };
+};
 
 const completedTransaction = ref<TransactionInfo | null>(null);
 const savedTransaction = computed(() => {
@@ -30,7 +42,8 @@ const savedTransaction = computed(() => {
   return transactionStatusStore.getTransaction(route.params.hash);
 });
 const transaction = computed(() => {
-  return completedTransaction.value || savedTransaction.value;
+  const tx = completedTransaction.value || savedTransaction.value;
+  return tx ? enrichTokenIcon(tx) : undefined;
 });
 
 watch(

@@ -33,7 +33,7 @@ export const config = {
   IMG_THRESHOLD: { threshold: 0.4 },
   mainWindowSize: { width: 1280, height: 720 },
   popUpWindowSize: { width: 355, height: 500 },
-  DAPP_NETWORK: NetworkSwitcher.zkSyncEraGoerli,
+  DAPP_NETWORK: NetworkSwitcher.battleChainEraGoerli,
   headless: false,
   slowMo: 10,
   defaultTimeout: { timeout: 6 * 1000 },
@@ -45,7 +45,7 @@ export const config = {
   feeLimitations: true,
   feeBoundaryLevel: 0.2, // in ETH
   networkL1: "goerli",
-  networkL2: "https://testnet.era.zksync.dev",
+  networkL2: "https://testnet.era.battlechain.com",
   thresholdBalance: 0.6,
   preThresholdBalance: 0.9,
   matterMostURL: "most.matter-labs.io",

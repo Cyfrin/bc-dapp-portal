@@ -13,20 +13,20 @@
       </CommonCardWithLineButtons>
       <CommonCardWithLineButtons>
         <DestinationItem
-          v-if="eraNetwork.l1Network"
+          v-if="bcNetwork.l1Network"
           v-bind="destinations.ethereum"
           :label="`Bridge to ${destinations.ethereum.label}`"
           as="RouterLink"
           :to="{ name: 'bridge-withdraw', query: $route.query }"
         />
       </CommonCardWithLineButtons>
-      <CommonCardWithLineButtons v-if="eraNetwork.displaySettings?.showPartnerLinks">
+      <!--CommonCardWithLineButtons v-if="bcNetwork.displaySettings?.showPartnerLinks">
         <DestinationItem
           :label="`Bridge to other networks`"
           :description="`Explore ecosystem of third party bridges`"
           :icon="ArrowTopRightOnSquareIcon"
           as="a"
-          href="https://zksync.dappradar.com/ecosystem?category=defi_bridge"
+          href="https://battlechain.dappradar.com/ecosystem?category=defi_bridge"
           target="_blank"
         >
           <template #image>
@@ -35,16 +35,16 @@
             </DestinationIconContainer>
           </template>
         </DestinationItem>
-      </CommonCardWithLineButtons>
+      </CommonCardWithLineButtons-->
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon, Squares2X2Icon } from "@heroicons/vue/24/outline";
+// import { ArrowTopRightOnSquareIcon, Squares2X2Icon } from "@heroicons/vue/24/outline";
 
 const { destinations } = storeToRefs(useDestinationsStore());
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 </script>
 
 <style lang="scss" scoped></style>

@@ -1,18 +1,18 @@
 <template>
   <div>
-    <NetworkDeprecationAlert />
+    <!--NetworkDeprecationAlert />-->
     <PageTitle>Assets</PageTitle>
 
     <template v-if="!isConnected">
-      <ConnectWalletBlock>Connect wallet to view your balances on {{ eraNetwork.name }}</ConnectWalletBlock>
+      <ConnectWalletBlock>Connect wallet to view your balances on {{ bcNetwork.name }}</ConnectWalletBlock>
     </template>
     <template v-else>
       <TransactionWithdrawalsAvailableForClaimAlert />
-      <EcosystemBlock
-        v-if="eraNetwork.displaySettings?.showPartnerLinks && ecosystemBannerVisible"
+      <!--EcosystemBlock
+        v-if="bcNetwork.displaySettings?.showPartnerLinks && ecosystemBannerVisible"
         show-close-button
         class="mb-block-padding-1/2 sm:mb-block-gap"
-      />
+      /-->
       <CommonContentBlock class="mb-block-gap">
         <div class="flex flex-col flex-wrap gap-block-gap sm:flex-row sm:items-center sm:justify-between">
           <CommonTotalBalance :balance="balance" :loading="loading" :error="balanceError" />
@@ -21,7 +21,7 @@
               variant="primary"
               as="RouterLink"
               :to="{
-                name: eraNetwork.l1Network ? 'receive-methods' : 'receive',
+                name: bcNetwork.l1Network ? 'receive-methods' : 'receive',
               }"
             >
               <template #icon>
@@ -32,7 +32,7 @@
             <CommonButton
               variant="primary"
               as="RouterLink"
-              :to="{ name: eraNetwork.l1Network ? 'send-methods' : 'send' }"
+              :to="{ name: bcNetwork.l1Network ? 'send-methods' : 'send' }"
             >
               <template #icon>
                 <ArrowUpRightIcon aria-hidden="true" />
@@ -64,7 +64,7 @@
               v-for="item in displayedBalances"
               :key="item.address"
               as="div"
-              :send-route-name="eraNetwork.l1Network ? 'send-methods' : 'send'"
+              :send-route-name="bcNetwork.l1Network ? 'send-methods' : 'send'"
               v-bind="item"
             />
           </template>
@@ -74,7 +74,7 @@
                 You don't have any balances on
                 <span class="font-medium">{{ destinations.era.label }}</span>
               </div>
-              <span v-if="eraNetwork.l1Network" class="mt-1.5 inline-block">
+              <span v-if="bcNetwork.l1Network" class="mt-1.5 inline-block">
                 Proceed to
                 <NuxtLink class="link" :to="{ name: 'receive-methods' }">Add funds</NuxtLink> page to add balance to
                 your account
@@ -86,11 +86,11 @@
 
       <template v-if="noBalances">
         <TypographyCategoryLabel>
-          To start using ZKsync ecosystem, deposit tokens in any convenient way
+          To start using BattleChain ecosystem, deposit tokens in any convenient way
         </TypographyCategoryLabel>
 
         <div class="flex flex-col gap-block-gap">
-          <BridgeFromEthereumButton v-if="eraNetwork.l1Network" />
+          <BridgeFromEthereumButton v-if="bcNetwork.l1Network" />
 
           <CommonCardWithLineButtons v-for="(item, index) in depositMethods" :key="index">
             <DestinationItem v-bind="item.props">
@@ -104,7 +104,7 @@
         </div>
       </template>
       <template v-else>
-        <TypographyCategoryLabel>Deposit more tokens to ZKsync</TypographyCategoryLabel>
+        <TypographyCategoryLabel>Deposit more tokens to BattleChain</TypographyCategoryLabel>
 
         <CommonCardWithLineButtons>
           <DestinationItem v-for="(item, index) in depositMethods" :key="index" v-bind="item.props">
@@ -123,26 +123,24 @@
 <script lang="ts" setup>
 import {
   ArrowDownLeftIcon,
-  ArrowsUpDownIcon,
-  ArrowTopRightOnSquareIcon,
+  // ArrowsUpDownIcon,
   ArrowUpRightIcon,
-  BanknotesIcon,
+  // BanknotesIcon,
   QrCodeIcon,
 } from "@heroicons/vue/24/outline";
-import { mainnet } from "viem/chains";
 
-import useEcosystemBanner from "@/composables/zksync/deposit/useEcosystemBanner";
+// import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 
 import type { FunctionalComponent } from "vue";
 
 const onboardStore = useOnboardStore();
-const walletStore = useZkSyncWalletStore();
+const walletStore = useBattleChainWalletStore();
 const { isConnected } = storeToRefs(onboardStore);
 const { balance, balanceInProgress, balanceError } = storeToRefs(walletStore);
 const { destinations } = storeToRefs(useDestinationsStore());
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 
-const { ecosystemBannerVisible } = useEcosystemBanner();
+// const { ecosystemBannerVisible } = useEcosystemBanner();
 
 const { loading, reset: resetSingleLoading } = useSingleLoading(computed(() => balanceInProgress.value));
 
@@ -159,12 +157,12 @@ const noBalances = computed(() => !loading.value && !balanceError.value && !disp
 
 const depositMethods = computed(() => {
   const methods: { props: Record<string, unknown>; icon?: FunctionalComponent }[] = [];
-  if (eraNetwork.value.l1Network && !noBalances.value) {
+  if (bcNetwork.value.l1Network && !noBalances.value) {
     methods.push({
       props: {
         iconUrl: destinations.value.ethereum.iconUrl,
-        label: `Bridge from ${eraNetwork.value.l1Network?.name}`,
-        description: `Receive tokens from your ${eraNetwork.value.l1Network?.name} account`,
+        label: `Bridge from ${bcNetwork.value.l1Network?.name}`,
+        description: `Receive tokens from your ${bcNetwork.value.l1Network?.name} account`,
         as: "RouterLink",
         to: {
           name: "bridge",
@@ -173,25 +171,10 @@ const depositMethods = computed(() => {
     });
   }
 
-  const isMainnet = eraNetwork.value.l1Network?.id === mainnet.id;
-  const isTestnet = eraNetwork.value.l1Network && eraNetwork.value.l1Network.id !== mainnet.id;
-  if (isTestnet && eraNetwork.value.displaySettings?.showPartnerLinks) {
-    methods.push({
-      props: {
-        iconUrl: "/img/faucet.svg",
-        label: "Faucet",
-        description: "Receive testnet funds",
-        as: "a",
-        href: "https://docs.zksync.io/build/tooling/network-faucets.html",
-        target: "_blank",
-        icon: ArrowTopRightOnSquareIcon,
-      },
-    });
-  }
   methods.push({
     props: {
       label: "View your address",
-      description: `Receive tokens from another ${eraNetwork.value.name} account`,
+      description: `Receive tokens from another ${bcNetwork.value.name} account`,
       as: "RouterLink",
       to: {
         name: "receive",
@@ -199,13 +182,14 @@ const depositMethods = computed(() => {
     },
     icon: QrCodeIcon,
   });
-  if (isMainnet && eraNetwork.value.displaySettings?.showPartnerLinks) {
+  /*
+  if (isMainnet && bcNetwork.value.displaySettings?.showPartnerLinks) {
     methods.push({
       props: {
         label: "Top-up with cash",
         description: "Buy tokens using a card or another method for fiat",
         as: "a",
-        href: "https://zksync.dappradar.com/ecosystem?category=non_dapps_on_off_ramps",
+        href: "https://battlechain.dappradar.com/ecosystem?category=non_dapps_on_off_ramps",
         target: "_blank",
         icon: ArrowTopRightOnSquareIcon,
       },
@@ -216,13 +200,13 @@ const depositMethods = computed(() => {
         label: "Bridge from other networks",
         description: "Explore ecosystem of third party bridges",
         as: "a",
-        href: "https://zksync.dappradar.com/ecosystem?category=defi_bridge",
+        href: "https://battlechain.dappradar.com/ecosystem?category=defi_bridge",
         target: "_blank",
         icon: ArrowTopRightOnSquareIcon,
       },
       icon: ArrowsUpDownIcon,
     });
-  }
+  } */
   return methods;
 });
 

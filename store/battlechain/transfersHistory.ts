@@ -1,12 +1,12 @@
-import usePaginatedRequest from "@/composables/zksync/usePaginatedRequest";
+import usePaginatedRequest from "@/composables/battlechain/usePaginatedRequest";
 
 import type { Api } from "@/types";
 
 const TRANSACTIONS_FETCH_LIMIT = 50;
 
-export const useZkSyncTransfersHistoryStore = defineStore("zkSyncTransfersHistory", () => {
+export const useBattleChainTransfersHistoryStore = defineStore("battleChainTransfersHistory", () => {
   const onboardStore = useOnboardStore();
-  const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+  const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
   const { account } = storeToRefs(onboardStore);
 
   const filterOutDuplicateTransfers = (transfers: Transfer[]) => {
@@ -51,10 +51,10 @@ export const useZkSyncTransfersHistoryStore = defineStore("zkSyncTransfersHistor
     loadNext,
     reset: resetPaginatedRequest,
   } = usePaginatedRequest<Api.Response.Transfer>(() => {
-    if (!eraNetwork.value.blockExplorerApi)
-      throw new Error(`Block Explorer API is not available on ${eraNetwork.value.name}`);
+    if (!bcNetwork.value.blockExplorerApi)
+      throw new Error(`Block Explorer API is not available on ${bcNetwork.value.name}`);
 
-    const url = new URL(`/address/${account.value.address}/transfers`, eraNetwork.value.blockExplorerApi);
+    const url = new URL(`/address/${account.value.address}/transfers`, bcNetwork.value.blockExplorerApi);
     url.searchParams.set("limit", TRANSACTIONS_FETCH_LIMIT.toString());
     return url;
   });

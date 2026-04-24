@@ -5,7 +5,7 @@
       <CommonErrorBlock
         v-if="buttonStep === 'network' && switchingNetworkError"
         class="mb-2"
-        @try-again="eraWalletStore.setCorrectNetwork"
+        @try-again="bcWalletStore.setCorrectNetwork"
       >
         Network change error: {{ switchingNetworkError.message }}
       </CommonErrorBlock>
@@ -24,12 +24,12 @@
         :disabled="switchingNetworkInProgress"
         variant="primary"
         class="w-full"
-        @click="eraWalletStore.setCorrectNetwork"
+        @click="bcWalletStore.setCorrectNetwork"
       >
-        Change wallet network to {{ eraNetwork.name }}
+        Change wallet network to {{ bcNetwork.name }}
       </CommonButton>
       <CommonButton v-else disabled variant="primary" class="w-full">
-        Change network manually to {{ eraNetwork.name }} in your {{ walletName }} wallet
+        Change network manually to {{ bcNetwork.name }} in your {{ walletName }} wallet
       </CommonButton>
     </div>
     <div v-else-if="buttonStep === 'continue'" class="transaction-footer-row">
@@ -42,11 +42,11 @@
 
 <script lang="ts" setup>
 const onboardStore = useOnboardStore();
-const eraWalletStore = useZkSyncWalletStore();
+const bcWalletStore = useBattleChainWalletStore();
 
 const { account, isConnectingWallet, connectorName, walletName } = storeToRefs(onboardStore);
-const { isCorrectNetworkSet, switchingNetworkInProgress, switchingNetworkError } = storeToRefs(eraWalletStore);
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { isCorrectNetworkSet, switchingNetworkInProgress, switchingNetworkError } = storeToRefs(bcWalletStore);
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 
 const buttonStep = computed(() => {
   if (!account.value.address || isConnectingWallet.value) {

@@ -32,9 +32,10 @@ export const l1Networks = {
     },
   },
 } as const;
+
 export type L1Network = Chain;
 
-export type ZkSyncNetwork = {
+export type BattleChainNetwork = {
   id: number;
   key: string;
   name: string;
@@ -42,6 +43,7 @@ export type ZkSyncNetwork = {
   hidden?: boolean; // If set to true, the network will not be shown in the network selector
   deprecated?: boolean;
   l1Network?: L1Network;
+  isPrividium?: boolean; // If true, the network uses Prividium for authentication
   blockExplorerUrl?: string;
   blockExplorerApi?: string;
   displaySettings?: {
@@ -52,22 +54,21 @@ export type ZkSyncNetwork = {
   nativeCurrency?: { name: string; symbol: string; decimals: number };
   nativeTokenBridgingOnly?: boolean;
   getTokens?: () => Token[] | Promise<Token[]>; // If blockExplorerApi is specified, tokens will be fetched from there. Otherwise, this function will be used.
-  isPrividium?: boolean;
 };
 
-// See the official documentation on running a local ZKsync node: https://era.zksync.io/docs/tools/testing/
+// See the official documentation on running a local BattleChain node: https://era.battlechain.com/docs/tools/testing/
 // Also see the guide in the README.md file in the root of the repository.
 
-// In-memory node default config. Docs: https://era.zksync.io/docs/tools/testing/era-test-node.html
-export const inMemoryNode: ZkSyncNetwork = {
+// In-memory node default config. Docs: https://era.battlechain.com/docs/tools/testing/era-test-node.html
+export const inMemoryNode: BattleChainNetwork = {
   id: 260,
   key: "in-memory-node",
   name: "In-memory node",
   rpcUrl: "http://localhost:8011",
 };
 
-// Dockerized local setup default config. Docs: https://era.zksync.io/docs/tools/testing/dockerized-testing.html
-export const dockerizedNode: ZkSyncNetwork = {
+// Dockerized local setup default config. Docs: https://era.battlechain.com/docs/tools/testing/dockerized-testing.html
+export const dockerizedNode: BattleChainNetwork = {
   id: 270,
   key: "dockerized-node",
   name: "Dockerized local node",
@@ -83,14 +84,15 @@ export const dockerizedNode: ZkSyncNetwork = {
   },
 };
 
-const publicChains: ZkSyncNetwork[] = [
+const publicChains: BattleChainNetwork[] = [
+  /*
   {
-    id: 324,
+    id: 626,
     key: "mainnet",
-    name: "ZKsync Era",
-    rpcUrl: "https://mainnet.era.zksync.io",
-    blockExplorerUrl: "https://era.zksync.network",
-    blockExplorerApi: "https://block-explorer-api.mainnet.zksync.io",
+    name: "BattleChain",
+    rpcUrl: "https://mainnet.battlechain.com",
+    blockExplorerUrl: "https://explorer.mainnet.battlechain.com",
+    blockExplorerApi: "https://block-explorer-api.mainnet.battlechain.com",
     displaySettings: {
       onramp: true,
       showPartnerLinks: true,
@@ -98,113 +100,27 @@ const publicChains: ZkSyncNetwork[] = [
     },
     l1Network: l1Networks.mainnet,
   },
+  */
   {
-    id: 300,
-    key: "sepolia",
-    name: "ZKsync Era Sepolia",
-    rpcUrl: "https://sepolia.era.zksync.dev",
-    blockExplorerUrl: "https://sepolia-era.zksync.network",
-    blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
-    displaySettings: {
-      onramp: false,
-      showPartnerLinks: true,
-      isTestnet: true,
-    },
-    l1Network: l1Networks.sepolia,
-  },
-  {
-    id: 270,
-    key: "stage",
-    name: "ZKsync Stage",
-    rpcUrl: "https://z2-dev-api.zksync.dev",
-    blockExplorerUrl: "https://sepolia-beta.staging-scan-v2.zksync.dev",
-    blockExplorerApi: "https://block-explorer-api.stage.zksync.dev",
-    l1Network: l1Networks.sepolia,
-    hidden: true,
-    displaySettings: {
-      isTestnet: true,
-    },
-  },
-  {
-    id: 9075,
-    key: "gateway",
-    name: "ZKsync Gateway",
-    rpcUrl: "https://rpc.era-gateway-mainnet.zksync.dev",
-    blockExplorerUrl: "https://explorer.era-gateway-mainnet.zksync.dev",
-    blockExplorerApi: "https://block-explorer-api.era-gateway-mainnet.zksync.dev",
-    l1Network: l1Networks.mainnet,
-    displaySettings: {
-      onramp: false,
-      showPartnerLinks: false,
-      isTestnet: false,
-    },
-    nativeCurrency: {
-      name: "ZKsync",
-      symbol: "ZK",
-      decimals: 18,
-    },
-    nativeTokenBridgingOnly: true,
-  },
-  {
-    id: 32657,
-    key: "gateway-testnet",
-    name: "ZKsync Gateway Testnet",
-    rpcUrl: "https://rpc.era-gateway-testnet.zksync.dev",
-    blockExplorerUrl: "https://explorer.era-gateway-testnet.zksync.dev",
-    blockExplorerApi: "https://block-explorer.era-gateway-testnet.zksync.dev",
-    l1Network: l1Networks.sepolia,
+    id: 627,
+    key: "testnet",
+    name: "BattleChain Testnet",
+    rpcUrl: "https://testnet.battlechain.com:3051",
+    blockExplorerUrl: "https://explorer.testnet.battlechain.com",
+    blockExplorerApi: "https://block-explorer-api.testnet.battlechain.com",
     displaySettings: {
       onramp: false,
       showPartnerLinks: false,
       isTestnet: true,
     },
-    nativeCurrency: {
-      name: "ZKsync",
-      symbol: "ZK",
-      decimals: 18,
-    },
-    nativeTokenBridgingOnly: true,
-  },
-  {
-    id: 300,
-    hidden: true,
-    key: "prividium-era-testnet",
-    name: "Prividium Era Testnet",
-    rpcUrl: "https://proxy.era-prividium.zksync.dev/rpc",
-    blockExplorerUrl: "https://block-explorer.era-prividium.zksync.dev",
-    // blockExplorerApi: "https://block-explorer-api.sepolia.zksync.dev",
-    // l1Network: l1Networks.sepolia,
-    displaySettings: {
-      onramp: false,
-      showPartnerLinks: false,
-      isTestnet: true,
-    },
-    isPrividium: true,
-    getTokens: () => [
-      {
-        address: L2_BASE_TOKEN_ADDRESS,
-        l2Address: L2_BASE_TOKEN_ADDRESS,
-        symbol: "ETH",
-        name: "Ether",
-        decimals: 18,
-        iconUrl: "/img/eth.svg",
-      },
-      {
-        address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
-        l2Address: "0xd12660590f4D07864a6a077E4638F3f2235732A2",
-        symbol: "ZK",
-        name: "ZKsync Token",
-        decimals: 18,
-        iconUrl: "https://s2.coinmarketcap.com/static/img/coins/128x128/24091.png",
-      },
-    ],
+    l1Network: l1Networks.sepolia,
   },
 ];
 
-const getHyperchains = (): ZkSyncNetwork[] => {
+const getHyperchains = (): BattleChainNetwork[] => {
   const hyperchains = portalRuntimeConfig.hyperchainsConfig || (Hyperchains as Config);
   return hyperchains.map((e) => {
-    const network: ZkSyncNetwork = {
+    const network: BattleChainNetwork = {
       ...e.network,
       getTokens: () => e.tokens,
     };
@@ -221,7 +137,7 @@ const getHyperchains = (): ZkSyncNetwork[] => {
 };
 
 const nodeType = portalRuntimeConfig.nodeType;
-const determineChainList = (): ZkSyncNetwork[] => {
+const determineChainList = (): BattleChainNetwork[] => {
   switch (nodeType) {
     case "memory":
       return [inMemoryNode];
@@ -234,5 +150,5 @@ const determineChainList = (): ZkSyncNetwork[] => {
   }
 };
 export const isCustomNode = !!nodeType;
-export const chainList: ZkSyncNetwork[] = determineChainList();
+export const chainList: BattleChainNetwork[] = determineChainList();
 export const defaultNetwork = chainList[0];

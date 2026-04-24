@@ -8,7 +8,7 @@ Feature: Navigation
   Scenario: Check navigation for the Faucet page (empty wallet)
     Given I am on the Main page
     When I click by text " Get free test tokens "
-    Then Current page have "/transaction/zksync/era/faucet" address
+    Then Current page have "/transaction/battlechain/era/faucet" address
 
   @id1547
   Scenario: Check navigation for the Faucet page (fulfilled wallet)
@@ -18,7 +18,7 @@ Feature: Navigation
     Then Element with "text" "Receive test tokens" should be "clickable"
     Then Element with "text" "Use official faucet to get test tokens" should be "visible"
     When I click by text "Receive test tokens"
-    Then Current page have "/transaction/zksync/era/faucet" address
+    Then Current page have "/transaction/battlechain/era/faucet" address
 
   @id1543
   Scenario: Check navigation for the 404 page
@@ -35,13 +35,13 @@ Feature: Navigation
 
     Examples:
       | Button name       | url                                                                          |
-      | Receive           | /transaction/zksync/era/receive                                              |
-      | Send              | /transaction/zksync/era                                                      |
-      | ETH               | /transaction/zksync/era?token=0x000000000000000000000000000000000000800A     |
-      | DAI               | /transaction/zksync/era?token=0x3e7676937A7E96CFB7616f255b9AD9FF47363D4b     |
-      | LINK              | /transaction/zksync/era?token=0x40609141Db628BeEE3BfAB8034Fc2D8278D0Cc78     |
-      | USDC              | /transaction/zksync/era?token=0x0faF6df7054946141266420b43783387A78d82A9     |
-      | wBTC              | /transaction/zksync/era?token=0x0BfcE1D53451B4a8175DD94e6e029F7d8a701e9c     |
+      | Receive           | /transaction/battlechain/era/receive                                              |
+      | Send              | /transaction/battlechain/era                                                      |
+      | ETH               | /transaction/battlechain/era?token=0x000000000000000000000000000000000000800A     |
+      | DAI               | /transaction/battlechain/era?token=0x3e7676937A7E96CFB7616f255b9AD9FF47363D4b     |
+      | LINK              | /transaction/battlechain/era?token=0x40609141Db628BeEE3BfAB8034Fc2D8278D0Cc78     |
+      | USDC              | /transaction/battlechain/era?token=0x0faF6df7054946141266420b43783387A78d82A9     |
+      | wBTC              | /transaction/battlechain/era?token=0x0BfcE1D53451B4a8175DD94e6e029F7d8a701e9c     |
       | View all          | /balances                                                                    |
 
   @id1492:I
@@ -53,7 +53,7 @@ Feature: Navigation
     Examples:
       | Selector type | Selector value               | url                        |
       | xpath         | //a[text()='View all']       | /transactions/all              |
-      | xpath         | //a[text()='Send']           | /transaction/zksync/era    |
+      | xpath         | //a[text()='Send']           | /transaction/battlechain/era    |
 
   @id1492:II
   Scenario: Check navigation for the Transactions page
@@ -63,7 +63,7 @@ Feature: Navigation
 
     Examples:
       | Selector type | Selector value              | url                                     |
-      | class         | line-button-with-img-icon   | https://goerli.explorer.zksync.io/tx    |
+      | class         | line-button-with-img-icon   | https://goerli.explorer.battlechain.com/tx    |
 
   @id1430:I
   Scenario Outline: Check Navigation for the "Send" page links
@@ -74,9 +74,9 @@ Feature: Navigation
 
     Examples:
       | Button name         | url                                     |
-      | ZKsync Era Testnet  | /transaction/zksync/era/send            |
-      | Ethereum Goerli     | /transaction/zksync/era/withdraw        |
-      | ZKsync Lite Goerli  | /transaction/zksync/era/send-lite       |
+      | Battle Chain Testnet  | /transaction/battlechain/era/send            |
+      | Ethereum Goerli     | /transaction/battlechain/era/withdraw        |
+      | Battle Chain Lite Goerli  | /transaction/battlechain/era/send-lite       |
 
   @id1430:II
   Scenario Outline: Check Navigation for the "Where to Send" page links
@@ -85,18 +85,18 @@ Feature: Navigation
     When I click by text "Official bridge"
     When I click by text "I understand the risks of losing funds"
     When I click on the "Proceed" button
-    Then Current page have "/transaction/zksync/era/withdraw" address
+    Then Current page have "/transaction/battlechain/era/withdraw" address
 
   @id1638
   Scenario Outline: Check Redirection for the "Out of funds" Faucet links
-    Given I go to page "/transaction/zksync/era/faucet/?network=era-goerli"
+    Given I go to page "/transaction/battlechain/era/faucet/?network=era-goerli"
     When I click by text "<Button name>"
     Then New page has "<url>" address
 
     Examples:
       | Button name                                   | url                                                   |
-      | following the instructions from our docs      | https://era.zksync.io/docs/tools/testing/             |
-      | Chainstack faucet                             | https://faucet.chainstack.com/zksync-testnet-faucet   |
+      | following the instructions from our docs      | https://era.battlechain.com/docs/tools/testing/             |
+      | Chainstack faucet                             | https://faucet.chainstack.com/battlechain-testnet-faucet   |
       | QuickNode faucet                              | https://faucet.quicknode.com/ethereum/goerli          |
       | PoW faucet                                    | https://goerli-faucet.pk910.de/                       |
 
@@ -111,8 +111,8 @@ Feature: Navigation
     Then Current page have "<Network URL>" address
     Examples:
       | Network name        | Network URL            |
-      | ZKsync Era Testnet  | /?network=era-goerli   |
-      | ZKsync Lite Goerli  | /?network=lite-goerli  |
+      | Battle Chain Testnet  | /?network=era-goerli   |
+      | Battle Chain Lite Goerli  | /?network=lite-goerli  |
 
   @1489:II @testnet
   Scenario Outline: Check navigation from networks dropdown
@@ -125,5 +125,5 @@ Feature: Navigation
     Then Current page have "<Network URL>" address
     Examples:
       | Network name        | Network URL            |
-      | ZKsync Era Mainnet  | /?network=era-mainnet  |
-      | ZKsync Lite Mainnet | /?network=lite-mainnet |
+      | Battle Chain Mainnet  | /?network=era-mainnet  |
+      | Battle Chain Lite Mainnet | /?network=lite-mainnet |

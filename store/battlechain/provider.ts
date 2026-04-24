@@ -1,7 +1,7 @@
 import { FetchRequest } from "ethers";
 import { Provider } from "zksync-ethers";
 
-export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
+export const useBattleChainProviderStore = defineStore("battleChainProvider", () => {
   const { selectedNetwork } = storeToRefs(useNetworkStore());
   const { waitForAuthentication, getPrividiumInstance, onAuthExpiry } = usePrividiumStore();
   const { isAuthenticated } = storeToRefs(usePrividiumStore());
@@ -48,7 +48,7 @@ export const useZkSyncProviderStore = defineStore("zkSyncProvider", () => {
   };
 
   return {
-    eraNetwork: selectedNetwork,
+    bcNetwork: selectedNetwork,
 
     requestProvider,
 

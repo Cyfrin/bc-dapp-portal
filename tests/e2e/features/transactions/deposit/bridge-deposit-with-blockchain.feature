@@ -13,7 +13,7 @@ Feature: Deposit
     Then Fee "should" have "$" value
     Then Fee "should" have "ETH" value
     When I choose "ETH" as token and insert "0.0000000001" as amount
-    When I "confirm" transaction after clicking "Add funds to ZKsync Era Testnet" button
+    When I "confirm" transaction after clicking "Add funds to Battle Chain Testnet" button
     Then Message "Transaction submitted" should be visible
     Then Element with "partial href" "https://goerli.etherscan.io/tx/" should be "clickable"
     #id1607 Check "Transaction submitted" pop up Artifacts
@@ -28,16 +28,16 @@ Feature: Deposit
     Then Arrow element for "Deposit" external link should be "visible"
     Then Arrow element for "Deposit" external link should be "clickable"
     Then Element with "text" " Your funds will be available on " should be "visible"
-    Then Element with "text" "ZKsync Era Testnet" should be "visible"
+    Then Element with "text" "Battle Chain Testnet" should be "visible"
     Then Element with "text" " after the transaction is committed on " should be "visible"
     Then Element with "text" "Ethereum Goerli Testnet" should be "visible"
     Then Element with "text" " and then processed on " should be "visible"
-    Then Element with "text" "ZKsync Era Testnet" should be "visible"
+    Then Element with "text" "Battle Chain Testnet" should be "visible"
     Then Element with "text" ". You are free to close this page. " should be "clickable"
     Then Element with "text" " Track status " should be "clickable"
     Then Element with "text" " Make another transaction " should be "visible"
     Then Element with "text" " Explore ecosystem " should be "visible"
     #id1609 Check "Explore ecosystem" button   
     Then I click by "text" with " Explore ecosystem " value
-    Then New page has "https://zksync.dappradar.com/" address
+    Then New page has "https://battlechain.dappradar.com/" address
     

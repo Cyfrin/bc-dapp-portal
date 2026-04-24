@@ -2,7 +2,7 @@ import { utils } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 
-import type { ZkSyncNetwork } from "@/data/networks";
+import type { BattleChainNetwork } from "@/data/networks";
 import type { Token, TokenAmount } from "@/types";
 
 export function isOnlyZeroes(value: string) {
@@ -13,7 +13,7 @@ export function calculateFee(gasLimit: bigint, gasPrice: bigint) {
   return gasLimit * gasPrice;
 }
 
-export const getNetworkUrl = (network: ZkSyncNetwork, routePath: string) => {
+export const getNetworkUrl = (network: BattleChainNetwork, routePath: string) => {
   const url = new URL(routePath, window.location.origin);
   url.searchParams.set("network", network.key);
   return url.toString();
@@ -66,18 +66,21 @@ export enum AddressChainType {
 
 export function getBalancesWithCustomBridgeTokens(
   balances: TokenAmount[] | undefined,
-  addressChainType: AddressChainType
+  addressChainType: AddressChainType,
+  l1ChainId?: number
 ): TokenAmount[] {
   if (!balances || balances.length === 0) return [];
 
-  const customBridgeTokensAddresses = customBridgeTokens.map((customToken) => {
+  const networkCustomBridgeTokens = customBridgeTokens.filter((customToken) => customToken.chainId === l1ChainId);
+
+  const customBridgeTokensAddresses = networkCustomBridgeTokens.map((customToken) => {
     if (addressChainType === AddressChainType.L1) {
       return customToken.l1Address;
     }
     return customToken.l2Address;
   });
 
-  const mappedCustomBridgeTokens: TokenAmount[] = customBridgeTokens.map((customToken) => {
+  const mappedCustomBridgeTokens: TokenAmount[] = networkCustomBridgeTokens.map((customToken) => {
     const customTokenAddress = addressChainType === AddressChainType.L1 ? customToken.l1Address : customToken.l2Address;
     const customTokenBalance = balances.find((balance) => balance.address === customTokenAddress);
     return {
@@ -122,18 +125,21 @@ export function getBalancesWithCustomBridgeTokens(
 
 export function getTokensWithCustomBridgeTokens(
   tokens: Token[] | undefined,
-  addressChainType: AddressChainType
+  addressChainType: AddressChainType,
+  l1ChainId?: number
 ): Token[] {
   if (!tokens || tokens.length === 0) return [];
 
-  const customBridgeTokensAddresses = customBridgeTokens.map((customToken) => {
+  const networkCustomBridgeTokens = customBridgeTokens.filter((customToken) => customToken.chainId === l1ChainId);
+
+  const customBridgeTokensAddresses = networkCustomBridgeTokens.map((customToken) => {
     if (addressChainType === AddressChainType.L1) {
       return customToken.l1Address;
     }
     return customToken.l2Address;
   });
 
-  const mappedCustomBridgeTokens: Token[] = customBridgeTokens.map((customBridgeToken) => {
+  const mappedCustomBridgeTokens: Token[] = networkCustomBridgeTokens.map((customBridgeToken) => {
     const customBridgeTokenAddress =
       addressChainType === AddressChainType.L1 ? customBridgeToken.l1Address : customBridgeToken.l2Address;
     const customToken = tokens.find((token) => token.address === customBridgeTokenAddress);
@@ -168,3 +174,30 @@ export function getTokensWithCustomBridgeTokens(
 
   return sortedTokens;
 }
+
+// @zksyncos
+// Helpers for identifying withdrawal (L2-L1) transaction status
+
+export function selectL2ToL1LogIndex(logs: any[]): number | null {
+  if (!Array.isArray(logs) || logs.length === 0) return null;
+  const i = logs.findIndex((l) => l?.is_service === true);
+  return i >= 0 ? i : 0;
+}
+
+function extractRevertData(err: any): `0x${string}` | null {
+  const hex = err?.data ?? err?.cause?.data ?? err?.cause?.cause?.data ?? err?.details;
+  if (typeof hex === "string" && hex.startsWith("0x")) return hex as `0x${string}`;
+  const meta: string[] | undefined = err?.metaMessages;
+  if (Array.isArray(meta)) {
+    const line = meta.find((l) => l.includes("0x"));
+    const m = line?.match(/0x[0-9a-fA-F]+/);
+    if (m) return m[0] as `0x${string}`;
+  }
+  return null;
+}
+
+// 0xa969e486 === LocalRootIsZero()
+const LOCAL_ROOT_IS_ZERO_SELECTOR = "0xa969e486" as const;
+
+export const isLocalRootIsZero = (err: any) =>
+  extractRevertData(err)?.slice(0, 10).toLowerCase() === LOCAL_ROOT_IS_ZERO_SELECTOR;

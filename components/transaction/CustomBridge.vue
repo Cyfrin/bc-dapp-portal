@@ -7,11 +7,11 @@
       :icon="ExclamationTriangleIcon"
       class="mb-block-gap"
     >
-      <p>Bridging {{ customBridgeToken.symbol }} is not supported by ZKsync Portal.</p>
+      <p>Bridging {{ customBridgeToken.symbol }} is not supported by BattleChain Portal.</p>
     </CommonAlert>
     <TypographyCategoryLabel>
       Use 3rd party bridges to get native {{ customBridgeToken.symbol }} on
-      {{ type === "deposit" ? eraNetwork.name : eraNetwork.l1Network?.name }}.
+      {{ type === "deposit" ? bcNetwork.name : bcNetwork.l1Network?.name }}.
     </TypographyCategoryLabel>
     <CommonCardWithLineButtons>
       <DestinationItem
@@ -44,7 +44,7 @@ const props = defineProps({
   },
 });
 
-const { eraNetwork } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork } = storeToRefs(useBattleChainProviderStore());
 const displayedBridges = computed(() => {
   if (props.type === "deposit") {
     return props.customBridgeToken.bridges

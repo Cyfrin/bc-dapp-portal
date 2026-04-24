@@ -1,7 +1,6 @@
 import { useMemoize } from "@vueuse/core";
-import { Wallet } from "zksync-ethers";
+import { Wallet, typechain } from "zksync-ethers";
 import IL1Nullifier from "zksync-ethers/abi/IL1Nullifier.json";
-import { IL1AssetRouter__factory as IL1AssetRouterFactory } from "zksync-ethers/build/typechain";
 
 import { L1_BRIDGE_ABI } from "@/data/abis/l1BridgeAbi";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
@@ -9,6 +8,7 @@ import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { useSentryLogger } from "../useSentryLogger";
 
 import type { Hash } from "@/types";
+import type { Address } from "viem";
 import type { FinalizeWithdrawalParams } from "zksync-ethers/build/types";
 
 export default (transactionInfo: ComputedRef<TransactionInfo>) => {
@@ -16,9 +16,9 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   const error = ref<Error | undefined>();
   const transactionHash = ref<Hash | undefined>();
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
-  const walletStore = useZkSyncWalletStore();
-  const tokensStore = useZkSyncTokensStore();
+  const providerStore = useBattleChainProviderStore();
+  const walletStore = useBattleChainWalletStore();
+  const tokensStore = useBattleChainTokensStore();
   const { isCorrectNetworkSet } = storeToRefs(onboardStore);
   const { ethToken } = storeToRefs(tokensStore);
   const { captureException } = useSentryLogger();
@@ -28,7 +28,12 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
   );
   const retrieveL1NullifierAddress = useMemoize(async () => {
     const providerL1 = await walletStore.getL1VoidSigner();
-    return await IL1AssetRouterFactory.connect((await retrieveBridgeAddresses()).sharedL1, providerL1).L1_NULLIFIER();
+    return await typechain.IL1AssetRouter__factory.connect(
+      (
+        await retrieveBridgeAddresses()
+      ).sharedL1,
+      providerL1
+    ).L1_NULLIFIER();
   });
 
   const gasLimit = ref<bigint | undefined>();
@@ -51,7 +56,14 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
       "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110",
       provider
     );
-    return await wallet.getFinalizeWithdrawalParams(transactionInfo.value.transactionHash);
+    const params = await wallet.getFinalizeWithdrawalParams(transactionInfo.value.transactionHash);
+    // ZKSync OS returns batchNumber instead of l1BatchNumber in the log proof RPC response.
+    // The SDK doesn't map this field, so we fall back to a raw RPC call if l1BatchNumber is missing.
+    if (params.l1BatchNumber == null) {
+      const logProof = await provider.getLogProof(transactionInfo.value.transactionHash, 0);
+      params.l1BatchNumber = (logProof as any)?.batchNumber ?? params.l1BatchNumber;
+    }
+    return params;
   };
 
   const getTransactionParams = async () => {
@@ -66,12 +78,12 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
 
     // If not, look it up from the custom bridge tokens configuration
     if (!l1BridgeAddress) {
-      const { eraNetwork } = storeToRefs(providerStore);
+      const { bcNetwork } = storeToRefs(providerStore);
 
       const customBridgeToken = customBridgeTokens.find(
         (token) =>
           token.l2Address.toLowerCase() === transactionInfo.value.token.address.toLowerCase() &&
-          token.chainId === eraNetwork.value.l1Network?.id
+          token.chainId === bcNetwork.value.l1Network?.id
       );
 
       l1BridgeAddress = customBridgeToken?.l1BridgeAddress;
@@ -82,7 +94,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
     if (isCustomBridge) {
       // Use custom bridge finalization
       return {
-        address: l1BridgeAddress as Hash,
+        address: l1BridgeAddress as Address,
         abi: L1_BRIDGE_ABI,
         account: onboardStore.account.address!,
         functionName: "finalizeWithdrawal",
@@ -90,8 +102,8 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
           BigInt(p.l1BatchNumber ?? 0n),
           BigInt(p.l2MessageIndex),
           Number(p.l2TxNumberInBlock) as number,
-          p.message as `0x${string}`,
-          p.proof as readonly `0x${string}`[],
+          p.message as Hash,
+          p.proof as Hash[],
         ],
       } as const;
     } else {
@@ -100,10 +112,10 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
         chainId: BigInt(chainId),
         l2BatchNumber: BigInt(p.l1BatchNumber ?? 0n),
         l2MessageIndex: BigInt(p.l2MessageIndex),
-        l2Sender: p.sender as `0x${string}`,
+        l2Sender: p.sender as Address,
         l2TxNumberInBatch: Number(p.l2TxNumberInBlock),
-        message: p.message,
-        merkleProof: p.proof,
+        message: p.message as Hash,
+        merkleProof: p.proof as Hash[],
       };
 
       return {
@@ -187,7 +199,7 @@ export default (transactionInfo: ComputedRef<TransactionInfo>) => {
         error: err as Error,
         parentFunctionName: "commitTransaction",
         parentFunctionParams: [],
-        filePath: "composables/zksync/useWithdrawalFinalization.ts",
+        filePath: "composables/battlechain/useWithdrawalFinalization.ts",
       });
     }
   };

@@ -63,7 +63,7 @@ const props = defineProps({
 });
 
 const { account } = storeToRefs(useOnboardStore());
-const { eraNetwork, blockExplorerUrl } = storeToRefs(useZkSyncProviderStore());
+const { bcNetwork, blockExplorerUrl } = storeToRefs(useBattleChainProviderStore());
 
 const direction = computed(() => {
   if (props.transfer.to === props.transfer.from && props.transfer.toNetwork === props.transfer.fromNetwork) {
@@ -112,12 +112,12 @@ const label = computed(() => {
 
 const getLayerName = (layer: NetworkLayer) => {
   if (layer === "L1") {
-    return eraNetwork.value.l1Network?.name;
+    return bcNetwork.value.l1Network?.name;
   }
-  return eraNetwork.value.name;
+  return bcNetwork.value.name;
 };
 const chainsLabel = computed(() => {
-  if (!eraNetwork.value.l1Network) {
+  if (!bcNetwork.value.l1Network) {
     return;
   }
   return {

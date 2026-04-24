@@ -1,6 +1,6 @@
 <template>
   <div>
-    <NetworkDeprecationAlert v-if="step === 'form'" />
+    <!--NetworkDeprecationAlert v-if="step === 'form'" />-->
     <PageTitle v-if="step === 'form'">Bridge</PageTitle>
     <PageTitle v-else-if="step === 'wallet-warning'">Wallet warning</PageTitle>
     <PageTitle
@@ -36,11 +36,11 @@
     <form v-else @submit.prevent="">
       <template v-if="step === 'form'">
         <TransactionWithdrawalsAvailableForClaimAlert />
-        <EcosystemBlock
-          v-if="eraNetwork.displaySettings?.showPartnerLinks && ecosystemBannerVisible"
+        <!--EcosystemBlock
+          v-if="bcNetwork.displaySettings?.showPartnerLinks && ecosystemBannerVisible"
           show-close-button
           class="mb-block-padding-1/2 sm:mb-block-gap"
-        />
+        /-->
         <CommonInputTransactionAmount
           v-model="amount"
           v-model:error="amountError"
@@ -52,6 +52,7 @@
           :approve-required="!enoughAllowance && (!tokenCustomBridge || !tokenCustomBridge.bridgingDisabled)"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
           class="mb-block-padding-1/2 sm:mb-block-gap"
+          @custom-token="addCustomToken"
         >
           <template #dropdown>
             <CommonButtonDropdown
@@ -115,7 +116,7 @@
         />
         <TransactionNativeBridge
           v-if="nativeTokenBridgingOnly"
-          :era-network="eraNetwork"
+          :bc-network="bcNetwork"
           type="deposit"
           class="mt-6"
         ></TransactionNativeBridge>
@@ -123,12 +124,12 @@
       <template v-else-if="step === 'wallet-warning'">
         <CommonAlert variant="warning" :icon="ExclamationTriangleIcon" class="mb-block-padding-1/2 sm:mb-block-gap">
           <p>
-            Make sure your wallet supports {{ eraNetwork.name }} network before adding funds to your account. Otherwise,
+            Make sure your wallet supports {{ bcNetwork.name }} network before adding funds to your account. Otherwise,
             this can result in <span class="font-medium text-red-600">loss of funds</span>. See the list of supported
             wallets on the
             <a
               class="underline underline-offset-2"
-              href="https://zksync.dappradar.com/ecosystem?category=non_dapps_wallets"
+              href="https://battlechain.dappradar.com/ecosystem?category=non_dapps_wallets"
               target="_blank"
               >Ecosystem</a
             >
@@ -185,41 +186,27 @@
               :loading="feeLoading"
             />
           </transition>
-          <CommonButtonLabel v-if="!isCustomNode" as="span" class="ml-auto text-right">~15 minutes</CommonButtonLabel>
+          <CommonButtonLabel v-if="!isCustomNode" as="span" class="ml-auto text-right">~15 seconds</CommonButtonLabel>
         </div>
-        <transition v-bind="TransitionAlertScaleInOutTransition" mode="out-in">
-          <CommonAlert
-            v-if="recommendedBalance && feeToken"
-            class="mt-4"
-            variant="error"
-            :icon="ExclamationTriangleIcon"
-          >
-            <p>
-              Insufficient <span class="font-medium">{{ feeToken?.symbol }}</span> balance on
-              {{ destinations.ethereum.label }} to cover the fee. We recommend having at least
-              <span class="font-medium"
-                >{{
-                  feeToken?.price
-                    ? removeSmallAmountPretty(recommendedBalance, feeToken?.decimals, feeToken?.price)
-                    : parseTokenAmount(recommendedBalance, feeToken?.decimals || 18)
-                }}
-                {{ feeToken?.symbol }}</span
-              >
-              on {{ eraNetwork.l1Network?.name ?? "L1" }} for deposit.
-            </p>
-            <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
-          </CommonAlert>
-          <CommonAlert
-            v-else-if="!enoughBalanceToCoverFee"
-            class="mt-4"
-            variant="error"
-            :icon="ExclamationTriangleIcon"
-          >
+        <transition v-bind="TransitionAlertScaleInOutTransition">
+          <CommonAlert v-if="!enoughBalanceToCoverFee" class="mt-4" variant="error" :icon="ExclamationTriangleIcon">
             <p>
               Insufficient <span class="font-medium">{{ feeToken?.symbol }}</span> balance on
               <span class="font-medium">{{ destinations.ethereum.label }}</span> to cover the fee
             </p>
             <NuxtLink :to="{ name: 'receive-methods' }" class="alert-link">Receive funds</NuxtLink>
+          </CommonAlert>
+        </transition>
+        <transition v-bind="TransitionAlertScaleInOutTransition">
+          <CommonAlert v-if="exceedsValueCap" class="mt-4" variant="warning" :icon="ExclamationTriangleIcon">
+            <div class="flex flex-col gap-3">
+              <p>
+                This deposit exceeds the $50,000 bridge cap. BattleChain is designed for controlled-risk stress-testing.
+              </p>
+              <CommonCheckboxWithText v-model="valueCapAcknowledged" class="!justify-start text-sm">
+                I understand the risks and want to proceed anyway
+              </CommonCheckboxWithText>
+            </div>
           </CommonAlert>
         </transition>
         <CommonErrorBlock v-if="allowanceRequestError" class="mt-2" @try-again="requestAllowance">
@@ -394,11 +381,12 @@ import { useRouteQuery } from "@vueuse/router";
 import { isAddress } from "ethers";
 
 import EthereumTransactionFooter from "@/components/transaction/EthereumTransactionFooter.vue";
+import useFee from "@/composables/battlechain/deposit/useFee";
+import useTransaction, { ensureTokenRegistered } from "@/composables/battlechain/deposit/useTransaction";
 import useAllowance from "@/composables/transaction/useAllowance";
+import { useCoinGeckoPrice } from "@/composables/useCoinGeckoPrice";
 import { useSentryLogger } from "@/composables/useSentryLogger";
-import useEcosystemBanner from "@/composables/zksync/deposit/useEcosystemBanner";
-import useFee from "@/composables/zksync/deposit/useFee";
-import useTransaction from "@/composables/zksync/deposit/useTransaction";
+// import useEcosystemBanner from "@/composables/battlechain/deposit/useEcosystemBanner";
 import { customBridgeTokens } from "@/data/customBridgeTokens";
 import { isCustomNode } from "@/data/networks";
 import DepositSubmitted from "@/views/transactions/DepositSubmitted.vue";
@@ -411,16 +399,16 @@ const route = useRoute();
 const router = useRouter();
 
 const onboardStore = useOnboardStore();
-const tokensStore = useZkSyncTokensStore();
-const providerStore = useZkSyncProviderStore();
-const zkSyncEthereumBalance = useZkSyncEthereumBalanceStore();
-const eraWalletStore = useZkSyncWalletStore();
-const { account, isConnected, walletNotSupported, walletWarningDisabled } = storeToRefs(onboardStore);
-const { eraNetwork } = storeToRefs(providerStore);
+const tokensStore = useBattleChainTokensStore();
+const providerStore = useBattleChainProviderStore();
+const battleChainEthereumBalance = useBattleChainEthereumBalanceStore();
+const bcWalletStore = useBattleChainWalletStore();
+const { account, isConnected, walletWarningDisabled } = storeToRefs(onboardStore);
+const { bcNetwork } = storeToRefs(providerStore);
 const { destinations } = storeToRefs(useDestinationsStore());
 const { l1BlockExplorerUrl } = storeToRefs(useNetworkStore());
 const { l1Tokens, baseToken, tokensRequestInProgress, tokensRequestError } = storeToRefs(tokensStore);
-const { balance, balanceInProgress, balanceError } = storeToRefs(zkSyncEthereumBalance);
+const { balance, balanceInProgress, balanceError } = storeToRefs(battleChainEthereumBalance);
 
 const { captureException } = useSentryLogger();
 
@@ -440,9 +428,23 @@ const fromNetworkSelected = (networkKey?: string) => {
 const step = ref<"form" | "wallet-warning" | "confirm" | "submitted">("form");
 const destination = computed(() => destinations.value.era);
 
+const importedTokens = ref<Token[]>([]);
+const addCustomToken = (token: Token) => {
+  if (!importedTokens.value.some((t) => t.address.toLowerCase() === token.address.toLowerCase())) {
+    importedTokens.value.push(token);
+  }
+};
 const availableTokens = computed<Token[]>(() => {
-  if (balance.value) return balance.value;
-  return getTokensWithCustomBridgeTokens(Object.values(l1Tokens.value ?? []), AddressChainType.L1);
+  const base = balance.value
+    ? balance.value
+    : getTokensWithCustomBridgeTokens(
+        Object.values(l1Tokens.value ?? []),
+        AddressChainType.L1,
+        bcNetwork.value.l1Network?.id
+      );
+  const existing = new Set(base.map((t) => t.address.toLowerCase()));
+  const newTokens = importedTokens.value.filter((t) => !existing.has(t.address.toLowerCase()));
+  return [...base, ...newTokens];
 });
 const availableBalances = computed<TokenAmount[]>(() => {
   return balance.value ?? [];
@@ -484,7 +486,7 @@ const tokenCustomBridge = computed(() => {
     return undefined;
   }
   const customBridgeToken = customBridgeTokens.find(
-    (e) => eraNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.address
+    (e) => bcNetwork.value.l1Network?.id === e.chainId && e.l1Address === selectedToken.value?.address
   );
   return customBridgeToken;
 });
@@ -516,7 +518,7 @@ const {
   computed(() => account.value.address),
   computed(() => selectedToken.value?.address),
   async () => (await providerStore.requestProvider().then((provider) => provider.getDefaultBridgeAddresses())).sharedL1,
-  eraWalletStore.getL1Signer
+  bcWalletStore.getL1Signer
 );
 const enoughAllowance = computedAsync(async () => {
   if (allowance?.value === undefined || !selectedToken.value) {
@@ -548,8 +550,8 @@ const {
   result: fee,
   inProgress: feeInProgress,
   error: feeError,
-  recommendedBalance,
   feeToken,
+  feeTokenBalance,
   enoughBalanceToCoverFee,
   estimateFee,
   resetFee,
@@ -608,6 +610,27 @@ const totalComputeAmount = computed(() => {
 });
 const enoughBalanceForTransaction = computed(() => !amountError.value);
 
+const DEPOSIT_VALUE_CAP_USD = 50_000;
+const { getTokenPrice } = useCoinGeckoPrice();
+const tokenUsdPrice = ref<number | undefined>();
+const valueCapAcknowledged = ref(false);
+watch(
+  () => selectedToken.value?.address,
+  async (address) => {
+    tokenUsdPrice.value = undefined;
+    valueCapAcknowledged.value = false;
+    if (!address) return;
+    tokenUsdPrice.value = await getTokenPrice(address);
+  },
+  { immediate: true }
+);
+const depositUsdValue = computed(() => {
+  const price = tokenUsdPrice.value ?? selectedToken.value?.price;
+  if (!price || !totalComputeAmount.value) return 0;
+  return formatRawTokenPrice(totalComputeAmount.value, selectedToken.value?.decimals ?? 18, price);
+});
+const exceedsValueCap = computed(() => depositUsdValue.value > DEPOSIT_VALUE_CAP_USD);
+
 const transaction = computed<
   | {
       token: TokenAmount;
@@ -637,14 +660,32 @@ const transaction = computed<
 });
 
 const feeLoading = computed(() => feeInProgress.value || (!fee.value && balanceInProgress.value));
+const registeredTokens = new Set<string>();
+const tryRegisterToken = async (tokenAddress: string) => {
+  if (registeredTokens.has(tokenAddress.toLowerCase())) return;
+  try {
+    const provider = await providerStore.requestProvider();
+    const bridgehubAddress = (await provider.getBridgehubContractAddress()) as Address;
+    await ensureTokenRegistered(tokenAddress as Address, bridgehubAddress);
+    registeredTokens.add(tokenAddress.toLowerCase());
+  } catch {
+    // Registration failed — deposit will still attempt and show its own error if needed
+  }
+};
 const estimate = async () => {
   if (!transaction.value?.from.address || !transaction.value?.to.address || !selectedToken.value) {
     return;
   }
-  await estimateFee(transaction.value.to.address, selectedToken.value.address);
+  const tokenAddr = selectedToken.value.address;
+  // Register imported (non-well-known) tokens in the L1 NativeTokenVault
+  const isImportedToken = importedTokens.value.some((t) => t.address.toLowerCase() === tokenAddr.toLowerCase());
+  if (isImportedToken) {
+    tryRegisterToken(tokenAddr);
+  }
+  await estimateFee(transaction.value.to.address, tokenAddr);
 };
 watch(
-  [() => selectedToken.value?.address, () => transaction.value?.from.address],
+  [() => selectedToken.value?.address, () => transaction.value?.from.address, feeTokenBalance],
   () => {
     resetFee();
     estimate();
@@ -652,7 +693,9 @@ watch(
   { immediate: true }
 );
 
-const autoUpdatingFee = computed(() => !feeError.value && fee.value && !feeLoading.value);
+const autoUpdatingFee = computed(
+  () => feeTokenBalance.value !== undefined && !feeError.value && fee.value && !feeLoading.value
+);
 const { reset: resetAutoUpdateEstimate, stop: stopAutoUpdateEstimate } = useInterval(async () => {
   if (!autoUpdatingFee.value) return;
   await estimate();
@@ -671,8 +714,8 @@ watch(
 
 const nativeTokenBridgingOnly = computed(() => {
   if (
-    eraNetwork.value.nativeTokenBridgingOnly &&
-    eraNetwork.value.nativeCurrency &&
+    bcNetwork.value.nativeTokenBridgingOnly &&
+    bcNetwork.value.nativeCurrency &&
     selectedToken.value &&
     selectedToken.value.address !== baseToken.value?.l1Address
   ) {
@@ -682,6 +725,7 @@ const nativeTokenBridgingOnly = computed(() => {
 });
 
 const continueButtonDisabled = computed(() => {
+  if (exceedsValueCap.value && !valueCapAcknowledged.value) return true;
   if (
     !transaction.value ||
     !enoughBalanceToCoverFee.value ||
@@ -701,11 +745,7 @@ const buttonContinue = () => {
     return;
   }
   if (step.value === "form") {
-    if (walletNotSupported.value) {
-      step.value = "wallet-warning";
-    } else {
-      step.value = "confirm";
-    }
+    step.value = "confirm";
   } else if (step.value === "wallet-warning") {
     step.value = "confirm";
   } else if (step.value === "confirm") {
@@ -718,15 +758,11 @@ const disableWalletWarning = () => {
 };
 
 /* Transaction signing and submitting */
-const transfersHistoryStore = useZkSyncTransfersHistoryStore();
+const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { previousTransactionAddress } = storeToRefs(usePreferencesStore());
-const {
-  status: transactionStatus,
-  error: transactionError,
-  commitTransaction,
-} = useTransaction(eraWalletStore.getL1Signer);
-const { recentlyBridged, ecosystemBannerVisible } = useEcosystemBanner();
-const { saveTransaction, waitForCompletion } = useZkSyncTransactionStatusStore();
+const { status: transactionStatus, error: transactionError, commitTransaction } = useTransaction();
+// const { recentlyBridged, ecosystemBannerVisible } = useEcosystemBanner();
+const { saveTransaction, waitForCompletion } = useBattleChainTransactionStatusStore();
 
 watch(step, (newStep) => {
   if (newStep === "form") {
@@ -743,7 +779,6 @@ const makeTransaction = async () => {
       to: transaction.value!.to.address as Address,
       tokenAddress: transaction.value!.token.address as Address,
       amount: transaction.value!.token.amount,
-      bridgeAddress: transaction.value!.token.l1BridgeAddress as Address | undefined,
     },
     feeValues.value!
   );
@@ -751,12 +786,15 @@ const makeTransaction = async () => {
   if (transactionStatus.value === "done") {
     step.value = "submitted";
     previousTransactionAddress.value = transaction.value!.to.address;
-    recentlyBridged.value = true;
+    // recentlyBridged.value = true;
   }
 
   if (tx) {
-    zkSyncEthereumBalance.deductBalance(feeToken.value!.address!, fee.value!);
-    zkSyncEthereumBalance.deductBalance(transaction.value!.token.address!, String(transaction.value!.token.amount));
+    battleChainEthereumBalance.deductBalance(feeToken.value!.address!, fee.value!);
+    battleChainEthereumBalance.deductBalance(
+      transaction.value!.token.address!,
+      String(transaction.value!.token.amount)
+    );
     transactionInfo.value = {
       type: "deposit",
       transactionHash: tx.hash,
@@ -774,7 +812,7 @@ const makeTransaction = async () => {
       router.resolve({
         name: "transaction-hash",
         params: { hash: transactionInfo.value.transactionHash },
-        query: { network: eraNetwork.value.key },
+        query: { network: bcNetwork.value.key },
       }).href
     );
     waitForCompletion(transactionInfo.value)
@@ -787,7 +825,7 @@ const makeTransaction = async () => {
         });
         setTimeout(() => {
           transfersHistoryStore.reloadRecentTransfers().catch(() => undefined);
-          eraWalletStore.requestBalance({ force: true }).catch(() => undefined);
+          bcWalletStore.requestBalance({ force: true }).catch(() => undefined);
         }, 2000);
       })
       .catch((err) => {
@@ -812,7 +850,7 @@ const fetchBalances = async (force = false) => {
   tokensStore.requestTokens();
   if (!isConnected.value) return;
 
-  await zkSyncEthereumBalance.requestBalance({ force });
+  await battleChainEthereumBalance.requestBalance({ force });
 };
 fetchBalances();
 

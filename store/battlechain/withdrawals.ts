@@ -4,22 +4,22 @@ import type { Api } from "@/types";
 
 const FETCH_TIME_LIMIT = 31 * 24 * 60 * 60 * 1000; // 31 days
 
-export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => {
+export const useBattleChainWithdrawalsStore = defineStore("battleChainWithdrawals", () => {
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
-  const transactionStatusStore = useZkSyncTransactionStatusStore();
+  const providerStore = useBattleChainProviderStore();
+  const transactionStatusStore = useBattleChainTransactionStatusStore();
   const { account, isConnected } = storeToRefs(onboardStore);
-  const { eraNetwork } = storeToRefs(providerStore);
+  const { bcNetwork } = storeToRefs(providerStore);
   const { userTransactions } = storeToRefs(transactionStatusStore);
   const { destinations } = storeToRefs(useDestinationsStore());
 
   const updateWithdrawals = async () => {
     if (!isConnected.value) throw new Error("Account is not available");
-    if (!eraNetwork.value.blockExplorerApi)
-      throw new Error(`Block Explorer API is not available on ${eraNetwork.value.name}`);
+    if (!bcNetwork.value.blockExplorerApi)
+      throw new Error(`Block Explorer API is not available on ${bcNetwork.value.name}`);
 
     const response: Api.Response.Collection<Api.Response.Transfer> = await $fetch(
-      `${eraNetwork.value.blockExplorerApi}/address/${account.value.address}/transfers?type=withdrawal`
+      `${bcNetwork.value.blockExplorerApi}/address/${account.value.address}/transfers?type=withdrawal`
     );
 
     for (const withdrawal of response.items.map(mapApiTransfer)) {
@@ -29,17 +29,10 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
       if (transactionFromStorage?.info.completed) continue;
 
       if (new Date(withdrawal.timestamp).getTime() < Date.now() - FETCH_TIME_LIMIT) break;
-      const transactionDetails = await retry(() =>
-        providerStore.requestProvider().then((provider) => provider.getTransactionDetails(withdrawal.transactionHash!))
-      );
 
-      const withdrawalFinalizationAvailable = transactionDetails.status === "verified";
-      const isFinalized = withdrawalFinalizationAvailable
-        ? await useZkSyncWalletStore()
-            .getL1VoidSigner(true)
-            .then((signer) => signer.isWithdrawalFinalized(withdrawal.transactionHash!))
-            .catch(() => false)
-        : false;
+      const isFinalized = await (await useBattleChainWalletStore().getL1VoidSigner(true))
+        ?.isWithdrawalFinalized(withdrawal.transactionHash)
+        .catch(() => false);
 
       transactionStatusStore.saveTransaction({
         type: "withdrawal",
@@ -62,7 +55,7 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
             new Date(withdrawal.timestamp).getTime() + WITHDRAWAL_DELAY
           ).toISOString(),
           completed: isFinalized,
-          withdrawalFinalizationAvailable,
+          withdrawalFinalizationAvailable: isFinalized,
         },
       });
     }
@@ -75,7 +68,7 @@ export const useZkSyncWithdrawalsStore = defineStore("zkSyncWithdrawals", () => 
   );
 
   const updateWithdrawalsIfPossible = async () => {
-    if (!isConnected.value || !eraNetwork.value.blockExplorerApi) {
+    if (!isConnected.value || !bcNetwork.value.blockExplorerApi) {
       return;
     }
     await updateWithdrawals();

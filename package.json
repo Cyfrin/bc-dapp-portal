@@ -1,6 +1,6 @@
 {
-  "name": "zksync-dapp-portal",
-  "description": "ZKsync Portal provides Wallet and Bridge functionality for interacting with ZKsync",
+  "name": "battlechain-dapp-portal",
+  "description": "BattleChain Portal provides Wallet and Bridge functionality for interacting with BattleChain",
   "private": true,
   "scripts": {
     "dev": "nuxt dev",
@@ -74,6 +74,7 @@
   "dependencies": {
     "@ankr.com/ankr.js": "^0.5.0",
     "@chenfengyuan/vue-qrcode": "^2.0.0",
+    "@dutterbutter/zksync-sdk": "^0.0.11-alpha",
     "@lottiefiles/dotlottie-vue": "^0.6.0",
     "@sentry/vue": "^9.0.0",
     "@vitejs/plugin-vue": "^3.2.0",
@@ -94,7 +95,7 @@
     "vue-tippy": "^6.0.0",
     "web3-avatar-vue": "^1.0.0",
     "zksync-easy-onramp": "4.0.0",
-    "zksync-ethers": "^6.20.0"
+    "zksync-ethers": "^6.21.0-zksyncos-alpha.1"
   },
   "overrides": {
     "vue": "latest"

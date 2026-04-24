@@ -1,58 +1,62 @@
-import { ethers } from "ethers";
 import { $fetch } from "ofetch";
 import { L1Signer, L1VoidSigner, BrowserProvider, Signer } from "zksync-ethers";
 
 import { customBridgeTokens } from "@/data/customBridgeTokens";
+import { wellKnownTokens } from "@/data/wellKnownTokens";
 import { getBalancesWithCustomBridgeTokens, AddressChainType } from "@/utils/helpers";
 
 import type { Api, TokenAmount } from "@/types";
 import type { BigNumberish } from "ethers";
 
-export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
+export const useBattleChainWalletStore = defineStore("battleChainWallet", () => {
   const onboardStore = useOnboardStore();
-  const providerStore = useZkSyncProviderStore();
-  const tokensStore = useZkSyncTokensStore();
-  const { eraNetwork } = storeToRefs(providerStore);
-  const { tokens } = storeToRefs(tokensStore);
+  const providerStore = useBattleChainProviderStore();
+  const tokensStore = useBattleChainTokensStore();
+  const { bcNetwork } = storeToRefs(providerStore);
   const { account } = storeToRefs(onboardStore);
   const { validateAddress } = useScreening();
 
+  const getWellKnownIconUrl = (l1Address?: string): string | undefined => {
+    if (!l1Address) return undefined;
+    const l1ChainId = bcNetwork.value.l1Network?.id;
+    if (!l1ChainId) return undefined;
+    const knownToken = wellKnownTokens[l1ChainId]?.find((t) => t.address.toLowerCase() === l1Address.toLowerCase());
+    return knownToken?.iconUrl;
+  };
+
   const { execute: getSigner, reset: resetSigner } = usePromise(async () => {
     const walletNetworkId = account.value.chain?.id;
-    if (walletNetworkId !== eraNetwork.value.id) {
+    if (walletNetworkId !== bcNetwork.value.id) {
       throw new Error(
-        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${eraNetwork.value.name} #${eraNetwork.value.id})`
+        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${bcNetwork.value.name} #${bcNetwork.value.id})`
       );
     }
 
-    const web3Provider = new BrowserProvider((await onboardStore.getWallet(eraNetwork.value.id)) as any, "any");
+    const web3Provider = new BrowserProvider((await onboardStore.getWallet(bcNetwork.value.id)) as any, "any");
     const rawEthersSigner = await web3Provider.getSigner();
-    const eraL2Signer = Signer.from(
-      rawEthersSigner,
-      Number(eraNetwork.value.id),
-      await providerStore.requestProvider()
-    );
+    const bcL2Signer = Signer.from(rawEthersSigner, await providerStore.requestProvider());
 
-    return eraL2Signer;
+    return bcL2Signer;
   });
   const { execute: getL1Signer, reset: resetL1Signer } = usePromise(async () => {
-    if (!eraNetwork.value.l1Network) throw new Error(`L1 network is not available on ${eraNetwork.value.name}`);
+    if (!bcNetwork.value.l1Network) throw new Error(`L1 network is not available on ${bcNetwork.value.name}`);
 
     const walletNetworkId = account.value.chain?.id;
-    if (walletNetworkId !== eraNetwork.value.l1Network.id) {
+    if (walletNetworkId !== bcNetwork.value.l1Network.id) {
       throw new Error(
-        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${eraNetwork.value.l1Network.name} #${eraNetwork.value.l1Network.id})`
+        `Incorrect wallet network selected: #${walletNetworkId} (expected: ${bcNetwork.value.l1Network.name} #${bcNetwork.value.l1Network.id})`
       );
     }
 
-    const web3Provider = new ethers.BrowserProvider((await onboardStore.getWallet()) as any, "any");
-    const eraL1Signer = L1Signer.from(await web3Provider.getSigner(), await providerStore.requestProvider());
-    return eraL1Signer;
+    const web3Provider = new BrowserProvider((await onboardStore.getWallet()) as any, "any");
+    const rawL1Signer = (await web3Provider.getSigner()) as unknown as any;
+    const bcL1Signer = L1Signer.from(rawL1Signer, await providerStore.requestProvider());
+    return bcL1Signer;
   });
   const getL1VoidSigner = async (anyAddress = false) => {
     if (!account.value.address && !anyAddress) throw new Error("Address is not available");
 
-    const web3Provider = new ethers.BrowserProvider(onboardStore.getPublicClient() as any, "any");
+    const web3Provider = new BrowserProvider(onboardStore.getPublicClient() as any, "any");
     return new L1VoidSigner(
       account.value.address || L2_BASE_TOKEN_ADDRESS,
       web3Provider,
@@ -66,27 +70,32 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     reset: resetAccountState,
   } = usePromise<Api.Response.Account | Api.Response.Contract>(async () => {
     if (!account.value.address) throw new Error("Account is not available");
-    if (!eraNetwork.value.blockExplorerApi)
-      throw new Error(`Block Explorer API is not available on ${eraNetwork.value.name}`);
+    if (!bcNetwork.value.blockExplorerApi)
+      throw new Error(`Block Explorer API is not available on ${bcNetwork.value.name}`);
 
-    return await $fetch(`${eraNetwork.value.blockExplorerApi}/address/${account.value.address}`);
+    return await $fetch(`${bcNetwork.value.blockExplorerApi}/address/${account.value.address}`);
   });
 
   const getBalancesFromBlockExplorerApi = async (): Promise<TokenAmount[]> => {
     await Promise.all([requestAccountState({ force: true }), tokensStore.requestTokens()]);
     if (!accountState.value) throw new Error("Account state is not available");
-    if (!tokens.value) throw new Error("Tokens are not available");
+    if (!tokensStore.tokens) throw new Error("Tokens are not available");
+    const baseToken = tokensStore.tokens?.[L2_BASE_TOKEN_ADDRESS];
     return Object.entries(accountState.value.balances)
-      .filter(([tokenAddress, { token }]) => token || tokens.value?.[tokenAddress])
+      .filter(([tokenAddress, { token }]) => token || tokensStore.tokens?.[tokenAddress])
       .map(([tokenAddress, { balance, token }]) => {
-        const tokenInfo = token ? mapApiToken(token) : tokens.value?.[tokenAddress];
+        const tokenInfo = token ? mapApiToken(token) : tokensStore.tokens?.[tokenAddress];
         return {
-          address: tokenInfo!.address,
+          address:
+            tokenInfo!.address === "0x000000000000000000000000000000000000800A" &&
+            baseToken?.symbol === tokenInfo?.symbol
+              ? baseToken?.address
+              : tokenInfo!.address,
           l1Address: tokenInfo!.l1Address || undefined,
           name: tokenInfo!.name || undefined,
           symbol: tokenInfo!.symbol!,
           decimals: tokenInfo!.decimals,
-          iconUrl: tokenInfo!.iconUrl || undefined,
+          iconUrl: tokenInfo!.iconUrl || getWellKnownIconUrl(tokenInfo!.l1Address) || undefined,
           price: tokenInfo?.price || undefined,
           amount: balance,
           l1BridgeAddress: tokenInfo?.l1BridgeAddress,
@@ -96,12 +105,12 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
   };
   const getBalancesFromRPC = async (): Promise<TokenAmount[]> => {
     await tokensStore.requestTokens();
-    if (!tokens.value) throw new Error("Tokens are not available");
+    if (!tokensStore.tokens) throw new Error("Tokens are not available");
     if (!account.value.address) throw new Error("Account is not available");
 
     const provider = await providerStore.requestProvider();
     const balances = await Promise.all(
-      Object.entries(tokens.value).map(async ([, token]) => {
+      Object.entries(tokensStore.tokens).map(async ([, token]) => {
         const amount = await provider.getBalance(onboardStore.account.address!, undefined, token.address);
         return {
           ...token,
@@ -131,7 +140,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     reset: resetBalance,
   } = usePromise<TokenAmount[]>(
     async () => {
-      if (eraNetwork.value.blockExplorerApi) {
+      if (bcNetwork.value.blockExplorerApi) {
         return await getBalancesFromBlockExplorerApi();
       } else {
         return await getBalancesFromRPC();
@@ -143,7 +152,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
   const balance = computed<TokenAmount[]>(() => {
     if (!balancesResult.value) return [];
 
-    const knownTokens: TokenAmount[] = Object.entries(tokens.value ?? {})
+    const knownTokens: TokenAmount[] = Object.entries(tokensStore.tokens ?? {})
       .map(([, token]) => {
         const amount = balancesResult.value!.find((e) => e.address === token.address)?.amount ?? "0";
         return { ...token, amount };
@@ -158,6 +167,10 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     // Filter out the tokens in `balancesResult` that are not in `tokens`
     const otherTokens = balancesResult.value
       .filter((token) => !knownTokenAddresses.has(token.address))
+      .map((token) => ({
+        ...token,
+        iconUrl: token.iconUrl || getWellKnownIconUrl(token.l1Address) || undefined,
+      }))
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
     const sortedTokens = [...knownTokens, ...otherTokens].sort((a, b) => {
@@ -174,14 +187,12 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
       return bValue - aValue;
     });
 
-    return getBalancesWithCustomBridgeTokens(sortedTokens, AddressChainType.L2);
+    return getBalancesWithCustomBridgeTokens(sortedTokens, AddressChainType.L2, bcNetwork.value.l1Network?.id);
   });
 
   const deductBalance = (tokenAddress: string, amount: BigNumberish) => {
     if (!balance.value) return;
-    const tokenBalance = getBalancesWithCustomBridgeTokens(balance.value, AddressChainType.L2).find(
-      (balance) => balance.address === tokenAddress
-    );
+    const tokenBalance = balance.value.find((balance) => balance.address === tokenAddress);
     if (!tokenBalance) return;
     const newBalance = BigInt(tokenBalance.amount) - BigInt(amount);
     tokenBalance.amount = newBalance < 0n ? "0" : newBalance.toString();
@@ -189,7 +200,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
 
   const isCorrectNetworkSet = computed(() => {
     const walletNetworkId = account.value.chain?.id;
-    return walletNetworkId === eraNetwork.value.id;
+    return walletNetworkId === bcNetwork.value.id;
   });
   const {
     inProgress: switchingNetworkInProgress,
@@ -197,7 +208,7 @@ export const useZkSyncWalletStore = defineStore("zkSyncWallet", () => {
     execute: switchNetwork,
   } = usePromise(
     async () => {
-      return await onboardStore.switchNetworkById(eraNetwork.value.id, eraNetwork.value.name);
+      return await onboardStore.switchNetworkById(bcNetwork.value.id, bcNetwork.value.name);
     },
     { cache: false }
   );

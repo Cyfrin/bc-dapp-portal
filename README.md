@@ -4,6 +4,8 @@
 
 **BattleChain Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both BattleChain versions - every interaction smooth and efficient.
 
+> Forked from [matter-labs/dapp-portal](https://github.com/matter-labs/dapp-portal) and adapted for the BattleChain network by [Cyfrin](https://www.cyfrin.io).
+
 ## ✨ Features
 
 - 🖥️ Intuitive interface for managing, sending, and bridging BattleChain.
@@ -25,8 +27,8 @@ Harness the Portal's power to connect to your [local BattleChain node](https://d
 1. 📚 Follow the [documentation](https://docs.battlechain.com/battlechain-node/quickstart) for setting up either an **in-memory node** or **dockerized local setup**.
 2. 🔄 Clone the Portal repository and set it up:
    ```bash
-   git clone https://github.com/matter-labs/dapp-portal.git
-   cd dapp-portal
+   git clone https://github.com/Cyfrin/zk-dapp-portal.git
+   cd zk-dapp-portal
    npm install
    ```
 3. 🛠️ Modify the default network settings in `data/networks.ts` if your network ID, RPC URL, or other info differs. Customize displayed tokens there if needed.
@@ -37,9 +39,9 @@ Harness the Portal's power to connect to your [local BattleChain node](https://d
      npm run dev:node:memory
      ```
    - For dockerized setup:
-     `bash
-npm run dev:node:docker
-`
+     ```bash
+     npm run dev:node:docker
+     ```
      Navigate to the displayed Portal URL (typically http://localhost:3000).
 
 ---
@@ -64,7 +66,7 @@ ANKR_TOKEN=your_ankr_token_here
 
 #### Wallet Connect Project Setup:
 
-Before deploying your own version of the Portal, ensure you create your own Wallet Connect project on [walletconnect.com](https://walletconnect.com). After creating the project, update the project ID in the `.env` file:
+Before deploying your own version of the Portal, ensure you create your own WalletConnect project on the [Reown Cloud dashboard](https://dashboard.reown.com). After creating the project, update the project ID in the `.env` file:
 
 ```bash
 WALLET_CONNECT_PROJECT_ID=your_project_id_here
@@ -125,10 +127,10 @@ npm run generate
 
 ## 🤝 Contributing
 
-Open arms for contributions! Enhance our code and send your pull request [here](https://github.com/matter-labs/dapp-portal/pulls).
+Open arms for contributions! Enhance our code and send your pull request [here](https://github.com/Cyfrin/zk-dapp-portal/pulls).
 
 ---
 
 ## 📜 License
 
-Proudly under the [MIT License](https://github.com/matter-labs/dapp-portal/blob/main/LICENSE).
+Proudly under the [MIT License](./LICENSE).

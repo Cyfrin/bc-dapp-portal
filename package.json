@@ -1,6 +1,7 @@
 {
   "name": "battlechain-dapp-portal",
   "description": "BattleChain Portal provides Wallet and Bridge functionality for interacting with BattleChain",
+  "packageManager": "npm@10.9.7",
   "private": true,
   "scripts": {
     "dev": "nuxt dev",

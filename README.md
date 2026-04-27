@@ -1,136 +1,109 @@
 ![BattleChain Portal](public/preview.png)
 
-# BattleChain Portal 🚀
+# BattleChain Portal
 
-**BattleChain Portal** is a state-of-the-art dapp, merging the power of bridge, tokens manager and transaction history into one user-friendly interface. Designed with a stress on effortless user experience, it simplifies token management, making it your premier interface for interacting with both BattleChain versions - every interaction smooth and efficient.
+A bridge, token manager, and transaction history UI for the BattleChain network.
 
-> Forked from [matter-labs/dapp-portal](https://github.com/matter-labs/dapp-portal) and adapted for the BattleChain network by [Cyfrin](https://www.cyfrin.io).
+> Forked from [matter-labs/dapp-portal](https://github.com/matter-labs/dapp-portal) and adapted for BattleChain by [Cyfrin](https://www.cyfrin.io).
 
-## ✨ Features
+Production deployment: [portal.battlechain.com](https://portal.battlechain.com/).
 
-- 🖥️ Intuitive interface for managing, sending, and bridging BattleChain.
-- 📇 Ability to add contacts for quick and easy access.
-- 🔧 Effortless setup and connection to local BattleChain nodes or ZK Stack Hyperchains.
+## Features
 
-## 🎉 Try it out!
+- Bridge assets between L1 and BattleChain.
+- Send, receive, and manage tokens.
+- Maintain a contact book for frequently-used addresses.
+- Connect to a local ZKsync node or a custom ZK Stack Hyperchain for development.
 
-- 🌐 Dive in now at [portal.battlechain.com](https://portal.battlechain.com/).
+## Connecting to a local node
 
----
+**Prerequisites:** Node.js 20+ and npm 10.9.7 (pinned via `packageManager` in `package.json`).
 
-## 🌍 Connecting to local node
-
-Harness the Portal's power to connect to your [local BattleChain node](https://docs.battlechain.com/battlechain-node/quickstart).
-
-**Prerequisites:** Node.js version 16+, npm version 7+
-
-1. 📚 Follow the [documentation](https://docs.battlechain.com/battlechain-node/quickstart) for setting up either an **in-memory node** or **dockerized local setup**.
-2. 🔄 Clone the Portal repository and set it up:
+1. Set up a local ZKsync node — either in-memory or dockerized — by following the [ZKsync local-setup documentation](https://docs.zksync.io/zksync-network/tooling/local-setup).
+2. Clone and install:
    ```bash
-   git clone https://github.com/Cyfrin/zk-dapp-portal.git
-   cd zk-dapp-portal
+   git clone https://github.com/Cyfrin/bc-dapp-portal.git
+   cd bc-dapp-portal
    npm install
    ```
-3. 🛠️ Modify the default network settings in `data/networks.ts` if your network ID, RPC URL, or other info differs. Customize displayed tokens there if needed.
-   - Alternatively, use the [configuration form](./hyperchains/README.md#configure-automatically-with-form) for guided config setup.
-4. 🔥 Launch the dev server:
-   - For in-memory node:
-     ```bash
-     npm run dev:node:memory
-     ```
-   - For dockerized setup:
-     ```bash
-     npm run dev:node:docker
-     ```
-     Navigate to the displayed Portal URL (typically http://localhost:3000).
+3. If your network ID, RPC URL, or token list differs from the defaults, edit `data/networks.ts`. The [hyperchain configuration form](./hyperchains/README.md#configure-automatically-with-form) is an alternative for guided setup.
+4. Start the dev server against your local node:
+   ```bash
+   # in-memory node
+   npm run dev:node:memory
 
----
+   # dockerized setup
+   npm run dev:node:docker
+   ```
+   The Portal serves on http://localhost:3000 by default.
 
-## 🔗 Connecting to Hyperchain
+## Connecting to a Hyperchain
 
-To use Portal with your ZK Stack Hyperchain, see the guide [here](./hyperchains/README.md).
+See [hyperchains/README.md](./hyperchains/README.md) for ZK Stack Hyperchain setup.
 
----
+## Development
 
-## 🛠 Development
+### Configuration
 
-### Advanced configuration
+The committed `.env` contains working defaults for local development. Override these for production deployments.
 
-#### L1 Balances:
-
-By default, L1 balances are fetched via a public RPC. For faster loading speeds and reduced load on your L1 RPC provider, consider using [Ankr's RPC service](https://www.ankr.com/rpc/). Obtain an Ankr token and update the `.env` file:
+**L1 balances.** By default, L1 balances are fetched via a public RPC. For higher throughput, use a provider like [Ankr](https://www.ankr.com/rpc/) and set:
 
 ```bash
 ANKR_TOKEN=your_ankr_token_here
 ```
 
-#### Wallet Connect Project Setup:
-
-Before deploying your own version of the Portal, ensure you create your own WalletConnect project on the [Reown Cloud dashboard](https://dashboard.reown.com). After creating the project, update the project ID in the `.env` file:
+**WalletConnect.** Create your own project on the [Reown Cloud dashboard](https://dashboard.reown.com) and set its ID:
 
 ```bash
 WALLET_CONNECT_PROJECT_ID=your_project_id_here
 ```
 
-#### Error logging with [Sentry](https://sentry.io/)
+**Sentry.** For error reporting, set:
 
-In the .env file, add the Sentry variables:
 ```bash
-SENTRY_DSN=your_sentry_dsn_url_here
-SENTRY_ENV=localhost # 'localhost' | 'production'
+SENTRY_DSN=your_sentry_dsn
+SENTRY_ENV=localhost  # localhost | production
 ```
-SENTRY_ENV variable is used in order to filter the issues by environment. 
 
-### 🔧 Setup
+`SENTRY_ENV` is used to filter issues by environment.
 
-Ensure you've installed the necessary dependencies:
+### Run
 
 ```bash
 npm install
+npm run dev      # serves on http://localhost:3000
 ```
 
-### 🌐 Development Server
+### Registering well-known tokens
 
-Activate the dev server at http://localhost:3000:
-
-```bash
-npm run dev
-```
-
-### Registering Well-Known Tokens
-
-The bridge UI displays a curated list of well-known ERC20 tokens defined in `data/wellKnownTokens.ts`. These tokens must be registered in the L1 NativeTokenVault before users can bridge them. Run the registration script after updating the token list:
+The bridge UI shows a curated list of ERC20 tokens defined in `data/wellKnownTokens.ts`. These must be registered in the L1 `NativeTokenVault` before users can bridge them. After updating the list, run:
 
 ```bash
 PRIVATE_KEY=<deployer_private_key> BRIDGEHUB=<bridgehub_address> npx ts-node scripts/registerWellKnownTokens.ts
 ```
 
 Environment variables:
-- `PRIVATE_KEY` — private key of an account with Sepolia ETH for gas
+
+- `PRIVATE_KEY` — deployer key with enough Sepolia ETH for gas
 - `BRIDGEHUB` — Bridgehub contract address (Sepolia: `0xcEa5C0ade89389Dd5FC461F69CCbD812cFb7fbd8`)
-- `RPC_URL` — (optional) L1 RPC endpoint, defaults to Sepolia public RPC
-- `L1_CHAIN_ID` — (optional) defaults to `11155111` (Sepolia)
+- `RPC_URL` — L1 RPC endpoint (default: public Sepolia RPC)
+- `L1_CHAIN_ID` — defaults to `11155111` (Sepolia)
 
-The script skips tokens that are already registered. Run it again whenever tokens are added to `wellKnownTokens.ts`.
+The script skips already-registered tokens, so it's safe to re-run.
 
-### 🏭 Production
-
-Compile for production:
+### Production build
 
 ```bash
 npm run generate
 ```
 
-📘 Familiarize yourself with the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) for a deeper dive.
+See the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) for build details.
 
----
+## Contributing
 
-## 🤝 Contributing
+PRs welcome — open one [here](https://github.com/Cyfrin/bc-dapp-portal/pulls).
 
-Open arms for contributions! Enhance our code and send your pull request [here](https://github.com/Cyfrin/zk-dapp-portal/pulls).
+## License
 
----
-
-## 📜 License
-
-Proudly under the [MIT License](./LICENSE).
+[MIT](./LICENSE).

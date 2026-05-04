@@ -1,11 +1,13 @@
+import { createEthersClient, createEthersSdk } from "@dutterbutter/zksync-sdk/ethers";
 import { readContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { AbiCoder, type BigNumberish } from "ethers";
-import { concat, encodeAbiParameters, keccak256, type Address, type Hash } from "viem";
+import { concat, encodeAbiParameters, keccak256, zeroAddress, type Address, type Hash } from "viem";
 
 import { useSentryLogger } from "@/composables/useSentryLogger";
 import { wagmiConfig } from "@/data/wagmi";
 
 import type { DepositFeeValues } from "@/composables/battlechain/deposit/useFee";
+import type { L1Signer } from "zksync-ethers";
 
 const L2_NATIVE_TOKEN_VAULT_ADDRESS = "0x0000000000000000000000000000000000010004" as Address;
 
@@ -105,7 +107,7 @@ function buildV1SecondBridgeCalldata(
   return concat(["0x01", inner as `0x${string}`]);
 }
 
-export default () => {
+export default (getL1Signer: () => Promise<L1Signer | undefined>) => {
   const status = ref<"not-started" | "processing" | "waiting-for-signature" | "done">("not-started");
   const error = ref<Error | undefined>();
   const ethTransactionHash = ref<Hash | undefined>();
@@ -133,47 +135,71 @@ export default () => {
 
       status.value = "waiting-for-signature";
 
-      const provider = await providerStore.requestProvider();
-      const bridgehubAddress = (await provider.getBridgehubContractAddress()) as Address;
-      const assetRouter = (await readContract(wagmiConfig, {
-        address: bridgehubAddress,
-        abi: BRIDGEHUB_ABI,
-        functionName: "sharedBridge",
-      })) as Address;
+      const isBaseToken = transaction.tokenAddress === zeroAddress;
 
-      const l2ChainId = BigInt((await provider.getNetwork()).chainId);
-      const amount = BigInt(transaction.amount.toString());
-      const receiver = transaction.to;
+      let hash: Hash;
+      if (isBaseToken) {
+        const wallet = await getL1Signer();
+        if (!wallet) throw new Error("Wallet is not available");
+        const client = createEthersClient({ l1: wallet.provider, l2: wallet.providerL2, signer: wallet });
+        const sdk = createEthersSdk(client);
 
-      const l1ChainId = BigInt(bcNetwork.value.l1Network?.id ?? 0);
-      if (!l1ChainId) throw new Error("L1 network is not available");
-
-      const secondBridgeCalldata = buildV1SecondBridgeCalldata(l1ChainId, transaction.tokenAddress, amount, receiver);
-
-      const baseCost = fee.baseCost ?? 0n;
-      const priorityFee = fee.maxPriorityFeePerGas ?? 0n;
-      const mintValue = baseCost + priorityFee;
-      if (!mintValue) throw new Error("Fee estimation returned zero — cannot submit deposit");
-
-      const hash = await writeContract(wagmiConfig, {
-        address: bridgehubAddress,
-        abi: BRIDGEHUB_ABI,
-        functionName: "requestL2TransactionTwoBridges",
-        args: [
-          {
-            chainId: l2ChainId,
-            mintValue,
-            l2Value: 0n,
-            l2GasLimit: fee.l2GasLimit ?? 2500000n,
-            l2GasPerPubdataByteLimit: fee.gasPerPubdata,
-            refundRecipient: receiver,
-            secondBridgeAddress: assetRouter,
-            secondBridgeValue: 0n,
-            secondBridgeCalldata,
+        const deposit = await sdk.deposits.create({
+          to: transaction.to,
+          token: transaction.tokenAddress,
+          amount: BigInt(transaction.amount.toString()),
+          l2GasLimit: fee.l2GasLimit,
+          gasPerPubdata: fee.gasPerPubdata,
+          l1TxOverrides: {
+            gasLimit: fee.l1GasLimit,
+            maxFeePerGas: fee.maxFeePerGas,
+            maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
           },
-        ],
-        value: mintValue,
-      });
+        });
+        hash = deposit.l1TxHash as Hash;
+      } else {
+        const provider = await providerStore.requestProvider();
+        const bridgehubAddress = (await provider.getBridgehubContractAddress()) as Address;
+        const assetRouter = (await readContract(wagmiConfig, {
+          address: bridgehubAddress,
+          abi: BRIDGEHUB_ABI,
+          functionName: "sharedBridge",
+        })) as Address;
+
+        const l2ChainId = BigInt((await provider.getNetwork()).chainId);
+        const amount = BigInt(transaction.amount.toString());
+        const receiver = transaction.to;
+
+        const l1ChainId = BigInt(bcNetwork.value.l1Network?.id ?? 0);
+        if (!l1ChainId) throw new Error("L1 network is not available");
+
+        const secondBridgeCalldata = buildV1SecondBridgeCalldata(l1ChainId, transaction.tokenAddress, amount, receiver);
+
+        const baseCost = fee.baseCost ?? 0n;
+        const priorityFee = fee.maxPriorityFeePerGas ?? 0n;
+        const mintValue = baseCost + priorityFee;
+        if (!mintValue) throw new Error("Fee estimation returned zero — cannot submit deposit");
+
+        hash = await writeContract(wagmiConfig, {
+          address: bridgehubAddress,
+          abi: BRIDGEHUB_ABI,
+          functionName: "requestL2TransactionTwoBridges",
+          args: [
+            {
+              chainId: l2ChainId,
+              mintValue,
+              l2Value: 0n,
+              l2GasLimit: fee.l2GasLimit ?? 2500000n,
+              l2GasPerPubdataByteLimit: fee.gasPerPubdata,
+              refundRecipient: receiver,
+              secondBridgeAddress: assetRouter,
+              secondBridgeValue: 0n,
+              secondBridgeCalldata,
+            },
+          ],
+          value: mintValue,
+        });
+      }
 
       ethTransactionHash.value = hash;
       status.value = "done";

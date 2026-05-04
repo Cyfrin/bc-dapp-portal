@@ -760,7 +760,11 @@ const disableWalletWarning = () => {
 /* Transaction signing and submitting */
 const transfersHistoryStore = useBattleChainTransfersHistoryStore();
 const { previousTransactionAddress } = storeToRefs(usePreferencesStore());
-const { status: transactionStatus, error: transactionError, commitTransaction } = useTransaction();
+const {
+  status: transactionStatus,
+  error: transactionError,
+  commitTransaction,
+} = useTransaction(bcWalletStore.getL1Signer);
 // const { recentlyBridged, ecosystemBannerVisible } = useEcosystemBanner();
 const { saveTransaction, waitForCompletion } = useBattleChainTransactionStatusStore();
 

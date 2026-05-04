@@ -55,7 +55,6 @@ export default defineNuxtConfig({
   modules: [
     "@kevinmarrec/nuxt-pwa",
     "@pinia/nuxt", // https://pinia.vuejs.org/ssr/nuxt.html
-    "@nuxtjs/eslint-module", // https://nuxt.com/modules/eslint
     "@nuxtjs/tailwindcss", // https://nuxt.com/modules/tailwindcss
   ],
 

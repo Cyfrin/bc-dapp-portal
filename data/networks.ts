@@ -85,7 +85,6 @@ export const dockerizedNode: BattleChainNetwork = {
 };
 
 const publicChains: BattleChainNetwork[] = [
-  /*
   {
     id: 626,
     key: "mainnet",
@@ -100,7 +99,6 @@ const publicChains: BattleChainNetwork[] = [
     },
     l1Network: l1Networks.mainnet,
   },
-  */
   {
     id: 627,
     key: "testnet",

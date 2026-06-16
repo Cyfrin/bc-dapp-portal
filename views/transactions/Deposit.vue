@@ -49,6 +49,7 @@
           :tokens="availableTokens"
           :balances="availableBalances"
           :max-amount="maxAmount"
+          :usd-price="tokenUsdPrice ?? selectedToken?.price"
           :approve-required="!enoughAllowance && (!tokenCustomBridge || !tokenCustomBridge.bridgingDisabled)"
           :loading="tokensRequestInProgress || balanceInProgress || feeLoading"
           class="mb-block-padding-1/2 sm:mb-block-gap"

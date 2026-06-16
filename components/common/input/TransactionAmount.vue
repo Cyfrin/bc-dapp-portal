@@ -88,7 +88,7 @@
           <div class="flex gap-2">
             <transition v-bind="TransitionOpacity(300)">
               <div v-if="approveRequired" v-tooltip="'Allowance approval required'">
-                <LockClosedIcon class="h-6 w-6 text-warning-400" aria-hidden="true" />
+                <LockClosedIcon class="mt-4 h-6 w-6 text-warning-400" aria-hidden="true" />
               </div>
             </transition>
             <CommonButtonDropdown

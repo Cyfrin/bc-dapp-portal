@@ -27,6 +27,8 @@
       @update:network-key="toNetworkSelected($event)"
     />
 
+    <ModalBridgeTermsGate v-model:opened="termsGateOpened" @accept="onTermsAccepted" />
+
     <CommonErrorBlock v-if="tokensRequestError" @try-again="fetchBalances">
       Getting tokens error: {{ tokensRequestError.message }}
     </CommonErrorBlock>
@@ -413,6 +415,9 @@ const { balance, balanceInProgress, balanceError } = storeToRefs(battleChainEthe
 
 const { captureException } = useSentryLogger();
 
+const { walletAccepted, recordWalletAcceptance } = useTermsAcceptance();
+const termsGateOpened = ref(false);
+
 const toNetworkModalOpened = ref(false);
 const toNetworkSelected = (networkKey?: string) => {
   if (destinations.value.ethereum.key === networkKey) {
@@ -750,8 +755,17 @@ const buttonContinue = () => {
   } else if (step.value === "wallet-warning") {
     step.value = "confirm";
   } else if (step.value === "confirm") {
+    if (!walletAccepted.value) {
+      termsGateOpened.value = true;
+      return;
+    }
     makeTransaction();
   }
+};
+const onTermsAccepted = () => {
+  recordWalletAcceptance();
+  termsGateOpened.value = false;
+  makeTransaction();
 };
 const disableWalletWarning = () => {
   walletWarningDisabled.value = true;
